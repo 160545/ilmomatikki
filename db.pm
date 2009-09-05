@@ -48,11 +48,12 @@ sub insert_comers {
     my $name = shift;
     my $email = shift;
     my $values = shift;
+    my $privacy = shift;
     my $sth;
 
-    $sth = $dbh->prepare("INSERT INTO participants (name, email, allergy) VALUES (?,?,?)")
+    $sth = $dbh->prepare("INSERT INTO participants (name, email, allergy, privacy) VALUES (?,?,?,?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($name, $email, $values);
+    $sth->execute($name, $email, $values, $privacy);
     $sth->finish;
 }
 
@@ -63,7 +64,7 @@ sub select_names {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name FROM participants");
+		       "SELECT name, email, privacy FROM participants");
 }
 
 # sub select_from_item_shop_person {

@@ -37,14 +37,33 @@ use db;
 
 my $dbh=db::connect_db();
 
+my $showall = url_param('tulijat');
+my $done = 0;
+my $ok = url_param('ok');
+
 # virhek‰sittely tehd‰‰n eval-lohkon p‰‰tteeksi (diell‰ ilmoitetaan virheet)
 eval {
-    if (param('ilmoa') && param('name') && param('email')) {
-	my @value;
-	my @values;
-	@value = grep {/^[0-9]+$/} param();
+    if (param('ilmoa') && param('name')) {
 
+	die "email" if !(param('email'));
+	die "merkki" if !(param('name') =~ /^[a-zA-Z.Âˆ‰≈÷ƒ, -]*?$/);
+	die "merkki" if !(param('email') =~ /^[^\@]+\@[^\@]+$/);
+	die "merkki" if !(param('email') =~ /^[a-zA-Z0-9.Âˆ‰≈÷ƒ, -\+\-:\@]*?$/);
+
+	my @values;
+	my $privacy;
+	my @value = grep {/^[0-9]+$/} param();
 	my @items = itext::allergy();	
+
+	if (param('allinfo')) {
+	    $privacy = 3;
+	} elsif (param('nameinfo')) {
+	    $privacy = 2;
+	} elsif (param('noinfo')) {
+	    $privacy = 1;
+	} else {
+	    $privacy = 3;
+	}
 
 	foreach my $item (@value) {
 	    push(@values, $items[$item]);
@@ -53,7 +72,9 @@ eval {
 	push(@values, escapeHTML(param('addinfo')));
 	my $commavalues = join(', ', sort(@values));
 
- 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $commavalues);
+ 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $commavalues, $privacy);
+
+	$done = 1;
     }
 
 #     # Add checked stuff from memory to shopping list, if first
@@ -64,48 +85,69 @@ eval {
 #     }
 };
 
-# if ($@) {
-#     my $message;
+ if ($@) {
+     my $message;
 
-#     if ($@ =~ m/^merkki/) {
-# 	$message="Voivoi, sallitut merkit ovat: a-zA-Z0-9.ˆ‰÷ƒ?/ - Yrit‰ uudelleen";
-#     } else { 
-# 	$message = $@;
-#     }
+     if ($@ =~ m/^merkki/) {
+	 $message= itext::charerror();
+     } elsif ($@ =~ m/^email/) {
+	 $message= itext::emailerror()
+     } else { 
+	 $message = $@;
+     }
 
-#     print header;
-#     print <<END;
-#     <html><head><title>ihtml::$title</title></head><body>
-#     END
-#     print"Arrgh: $message";
-#     print"</body></html>";
-#     exit 0;
-#}
-
-#if (!$updown && !$remove && request_method() eq "POST") {
-#    my $url = url(-relative=>1);
-#    $url .= "?group=$group" if ($group);
-#    print redirect(-uri=>$url,-status=>303,-nph=>0);
-#    exit 0;
-#}
-
-my @values = itext::allergy();
-
-print header;
-
-print "<html><head><title>".itext::title()."</title></head><body>";
-
-print"<h1>".itext::header()."</h1>";
-
-print"<form name=\"ilmottaudu\" method=\"post\">";
-print itext::name();
-print"<input type=\"text\" name=\"name\" size=30><br>\n";
-print itext::email();
-print"<input type=\"text\" name=\"email\" size=30><br>\n";
-print itext::allerg();
-for (my $n=0; $n < @values; $n++) { 
-    print"<br><input type=\"checkbox\" name=\"".$n."\">$values[$n]\n";
+     print header;
+     print itext::otsikko();
+     print"$message";
+     print itext::endtags();
+     exit 0;
 }
-print"<input type=\"text\" name=\"addinfo\" size=30><br>\n";
-print"<br><input type=\"submit\" name=\"ilmoa\" value=\"".itext::ilmotext()."\">\n";
-print "</body></html>";
+
+if (request_method() eq "POST") {
+    my $url = url(-relative=>1);
+    $url .= "?tulijat=1" if ($showall);
+    $url .= "?ok=1" if ($done);
+    print redirect(-uri=>$url,-status=>303,-nph=>0);
+    exit 0;
+}
+
+if ($showall) {
+    print header;
+    print itext::otsikko();
+    print itext::tulossa();
+    my @comers = db::select_names($dbh);
+    for (my $n=0; $n < @comers; $n++) { 
+	if ($comers[$n]->[2] == '3') {
+	    print itext::namesemail($n, \@comers);
+	} elsif ($comers[$n]->[2] == '2') {
+	    print itext::names($n, \@comers);
+	} elsif ($comers[$n]->[2] == '1') {
+	    print itext::namesnone();
+	}
+    }
+    print itext::takaisin();
+    print itext::endtags();
+} elsif ($ok) {
+    print header;
+    print itext::otsikko();
+    print itext::done();
+    print itext::ilmosivu();
+    print itext::takaisin();
+    print itext::endtags();
+}  else {   
+    my @values = itext::allergy();
+    
+    print header;
+    print itext::otsikko();
+    print itext::headeri();
+    print itext::formi1();
+    
+    for (my $n=0; $n < @values; $n++) { 
+	print itext::boxes($n);
+    }
+    
+    print itext::formi2();
+    
+    print itext::ilmosivu();
+    print itext::endtags();
+}

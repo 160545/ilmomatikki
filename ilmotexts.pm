@@ -28,21 +28,77 @@
 package itext;
 
 use strict;
+use CGI qw/:standard/;
 
 my $title = "Erkin valmistujaispippalot";
 my $header = "Ilmoittaudu Erkin valmistujaispippaloihin!";
-my @allergies = ("Gluteeniton","Kananmunaton","Laktoositon","Luontaisesti gluteeniton","Maidoton","Soijaton","Vähälaktoosinen (Hyla)","Joku muu mikä");
+my @allergies = ("Gluteeniton","Kananmunaton","Laktoositon","Luontaisesti gluteeniton","Maidoton","Soijaton","Vähälaktoosinen (Hyla)");
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
 my $ilmotext = "Ilmoittaudu!";
+my $ohje = "Minusta saa näkyä ilmoittautuneet-sivulla:";
+my $ohje1 = "Nimi ja sähköposti";
+my $ohje2 = "Vain nimi";
+my $ohje3 = "Ei mitään";
+my $other = "Joku muu mikä:";
+my $tulijat = "Ilmoittautuneet";
+my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen";
+my $emailerror = "Sähköpostiosoite on pakollinen";
+my $tulossa = "Tähän mennessä ilmoittautuneet:";
+my $done = "Ilmoittautuminen suoritettu.";
+my $takaisin = "Takaisin.";
 
-sub title { return $title;}
-sub header { return $header;}
+sub otsikko { return "<html><head><title>$title</title></head><body>";}
+
+sub headeri { return "<h1>$header</h1>";}
+
+sub tulossa { return "<h1>$tulossa</h1>";}
+
+sub done { return $done;}
+
+sub formi1 {
+    return "<form name=\"ilmottaudu\" method=\"post\"> 
+$name<input type=\"text\" name=\"name\" size=30><br>\n \
+$email<input type=\"text\" name=\"email\" size=30><br>\n \ 
+$allerg";}
+
+sub formi2 {return "<br>$other<input type=\"text\" name=\"addinfo\" size=30><br>\n \
+<br>$ohje<br><input type=\"checkbox\" name=\"allinfo\">$ohje1\n \
+<input type=\"checkbox\" name=\"nameinfo\">$ohje2\n \
+<input type=\"checkbox\" name=\"noinfo\">$ohje3\n \
+<br><br><input type=\"submit\" name=\"ilmoa\" value=\"$ilmotext\">\n";}
+
+sub boxes { 
+    my $n = shift;
+    return "<br><input type=\"checkbox\" name=\"$n\">$allergies[$n]\n";
+}
+
+sub namesemail {
+    my $n = shift;
+    my @values = @{shift()};
+    return "$values[$n]->[0], $values[$n]->[1]<br>\n";
+}
+
+sub names {
+    my $n = shift;
+    my @values = @{shift()};
+    return "$values[$n]->[0]<br>\n";
+}
+
+sub namesnone { return "Anonyymi<br>\n";}
+
+sub endtags {return "</body></html>";}
+
+sub ilmosivu { return "<br><br><br><a href=\"" . url(-relative=>1) . "?tulijat=1\">$tulijat</a>";}
+
+sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";}
+
 sub allergy { return @allergies;}
-sub name { return $name;}
-sub email { return $email;}
-sub allerg { return $allerg;}
-sub ilmotext { return $ilmotext;}
+
+sub charerror { return $charerror;}
+
+sub emailerror { return $emailerror;}
+
 
 return 1;
