@@ -57,6 +57,17 @@ sub insert_comers {
     $sth->finish;
 }
 
+sub delete_record {
+    my $dbh = shift;
+    my $name = shift;
+    my $sth;
+
+    $sth = $dbh->prepare("DELETE from participants WHERE name = ?")
+	or die "Couldn't prepare statement: " . $dbh->errstr;
+    $sth->execute($name);
+    $sth->finish;
+}
+
 sub select_names {
 
     my $dbh = shift;
@@ -67,18 +78,13 @@ sub select_names {
 		       "SELECT name, email, privacy FROM participants");
 }
 
-# sub select_from_item_shop_person {
-
-#     my $dbh = shift;
-#     my $list = shift;
-#     my $person = shift;
-#     return 
-# 	select_generic($dbh,
-# 		       sub{return [@_]},
-# 		       "SELECT item, name, EXTRACT(EPOCH FROM added_orig), bolded FROM item LEFT JOIN class ON name = cname WHERE list = ? and ingroup is null and personal = ? and (postponed_until < now() OR postponed_until is null) ORDER BY class, item",
-# 		       $list, $person);
-# }
-
+sub select_all {
+    my $dbh = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT name, email, allergy, privacy FROM participants");
+}
 
 sub select_generic {
 
@@ -104,64 +110,5 @@ sub select_generic {
 
     return @values;
 }
-
-# sub select_bolded {
-#     my $dbh = shift;
-#     my $val = shift;
-    
-#     return 
-# 	select_generic_scalar($dbh,
-# 			      sub{return $_},
-# 			      "SELECT bolded FROM item where item = ?",
-# 			      $val);
-# }
-
-# sub select_generic_scalar {
-
-#     my $dbh = shift;
-#     my $mapping = shift;
-#     my $stm = shift;
-#     my @args = @_;
-
-#     my $sth;
-#     my $item;
-
-#     $sth = $dbh->prepare($stm)
-# 	or die "Couldn't prepare statement: " . $dbh->errstr;
-
-#     $sth->execute(@args);
-
-#     $item = ($sth->fetchrow())[0];
-#     $sth->finish;
-
-#     return $item;
-# }
-
-
-# sub clear_all {
-#     my $dbh = shift;
-#     my $list = shift;
-    
-#     my $sth;
-    
-#     $sth = $dbh->prepare("DELETE FROM item WHERE list = ?")
-# 	or die "Couldn't prepare statement: " . $dbh->errstr;
-#     $sth->execute($list);    
-    
-#     $sth->finish;
-# }
-
-# sub delete_item {
-#     my $dbh = shift;
-#     my $item = shift;
-    
-#     my $sth;
-    
-#     $sth = $dbh->prepare("DELETE FROM item WHERE item = ?")
-# 	or die "Couldn't prepare statement: " . $dbh->errstr;
-#     $sth->execute($item);        
-#     $sth->finish;
-# }
-
 
 return 1;

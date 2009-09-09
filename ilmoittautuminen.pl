@@ -31,7 +31,6 @@
 
 use strict;
 use CGI qw/:standard -debug/;
-use POSIX qw(strftime);
 use ilmotexts;
 use db;
 
@@ -49,58 +48,51 @@ eval {
 	die "merkki" if !(param('name') =~ /^[a-zA-Z.Âˆ‰≈÷ƒ, -]*?$/);
 	die "merkki" if !(param('email') =~ /^[^\@]+\@[^\@]+$/);
 	die "merkki" if !(param('email') =~ /^[a-zA-Z0-9.Âˆ‰≈÷ƒ, -\+\-:\@]*?$/);
-
+	
 	my @values;
 	my $privacy;
 	my @value = grep {/^[0-9]+$/} param();
 	my @items = itext::allergy();	
-
-	if (param('allinfo')) {
+	
+	if (param('privacy') eq 'allinfo') {
 	    $privacy = 3;
-	} elsif (param('nameinfo')) {
+	} elsif (param('privacy') eq 'nameinfo') {
 	    $privacy = 2;
-	} elsif (param('noinfo')) {
+	} elsif (param('privacy') eq 'noinfo') {
 	    $privacy = 1;
 	} else {
 	    $privacy = 3;
 	}
-
+	
 	foreach my $item (@value) {
 	    push(@values, $items[$item]);
 	}
 	
 	push(@values, escapeHTML(param('addinfo')));
 	my $commavalues = join(', ', sort(@values));
-
+	
  	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $commavalues, $privacy);
-
+	
 	$done = 1;
     }
-
-#     # Add checked stuff from memory to shopping list, if first
-#     # character is @, add the content of memory file
-#     if (param('addtoo')) {
-
-# 	kauppa::add_from_memory($dbh, \@value, $olist);
-#     }
 };
 
- if ($@) {
-     my $message;
-
-     if ($@ =~ m/^merkki/) {
-	 $message= itext::charerror();
-     } elsif ($@ =~ m/^email/) {
-	 $message= itext::emailerror()
-     } else { 
-	 $message = $@;
-     }
-
-     print header;
-     print itext::otsikko();
-     print"$message";
-     print itext::endtags();
-     exit 0;
+if ($@) {
+    my $message;
+    
+    if ($@ =~ m/^merkki/) {
+	$message= itext::charerror();
+    } elsif ($@ =~ m/^email/) {
+	$message= itext::emailerror();
+    } else { 
+	$message = $@;
+    }
+    
+    print header;
+    print itext::otsikko();
+    print"$message";
+    print itext::endtags();
+    exit 0;
 }
 
 if (request_method() eq "POST") {

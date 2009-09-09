@@ -64,14 +64,14 @@ $email<input type=\"text\" name=\"email\" size=30><br>\n \
 $allerg";}
 
 sub formi2 {return "<br>$other<input type=\"text\" name=\"addinfo\" size=30><br>\n \
-<br>$ohje<br><input type=\"checkbox\" name=\"allinfo\">$ohje1\n \
-<input type=\"checkbox\" name=\"nameinfo\">$ohje2\n \
-<input type=\"checkbox\" name=\"noinfo\">$ohje3\n \
+<br>$ohje<br><input type=\"radio\" name=\"privacy\" value=\"allinfo\">$ohje1\n \
+<input type=\"radio\" name=\"privacy\" value=\"nameinfo\">$ohje2\n \
+<input type=\"radio\" name=\"privacy\" value=\"noinfo\">$ohje3\n \
 <br><br><input type=\"submit\" name=\"ilmoa\" value=\"$ilmotext\">\n";}
 
 sub boxes { 
     my $n = shift;
-    return "<br><input type=\"checkbox\" name=\"$n\">$allergies[$n]\n";
+    return "<br><input type=\"checkbox\" id=\"$n\" name=\"$n\"><label for=\"$n\">$allergies[$n]</label>\n";
 }
 
 sub namesemail {
