@@ -32,7 +32,7 @@ use CGI qw/:standard/;
 
 my $title = "Erkin valmistujaispippalot";
 my $header = "Ilmoittaudu Erkin valmistujaispippaloihin!";
-my @allergies = ("Gluteeniton","Kananmunaton","Laktoositon","Luontaisesti gluteeniton","Maidoton","Soijaton","Vähälaktoosinen (Hyla)");
+my @allergies = ("Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
@@ -44,7 +44,7 @@ my $ohje3 = "Ei mitään";
 my $other = "Joku muu mikä:";
 my $tulijat = "Ilmoittautuneet";
 my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen";
-my $emailerror = "Sähköpostiosoite on pakollinen";
+#my $emailerror = "Sähköpostiosoite on pakollinen";
 my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $done = "Ilmoittautuminen suoritettu.";
 my $takaisin = "Takaisin.";
@@ -98,7 +98,7 @@ sub allergy { return @allergies;}
 
 sub charerror { return $charerror;}
 
-sub emailerror { return $emailerror;}
+#sub emailerror { return $emailerror;}
 
 
 return 1;

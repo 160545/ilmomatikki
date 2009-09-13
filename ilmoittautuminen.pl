@@ -44,10 +44,10 @@ my $ok = url_param('ok');
 eval {
     if (param('ilmoa') && param('name')) {
 
-	die "email" if !(param('email'));
+#	die "email" if !(param('email'));
 	die "merkki" if !(param('name') =~ /^[a-zA-Z.וצהֵײִ, -]*?$/);
-	die "merkki" if !(param('email') =~ /^[^\@]+\@[^\@]+$/);
-	die "merkki" if !(param('email') =~ /^[a-zA-Z0-9.וצהֵײִ, -\+\-:\@]*?$/);
+	die "merkki" if !(param('email') =~ /(^[^\@]+\@[^\@]+$)?/);
+	die "merkki" if !(param('email') =~ /(^[a-zA-Z0-9.וצהֵײִ, -\+\-:\@]*?$)?/);
 	
 	my @values;
 	my $privacy;
@@ -69,9 +69,10 @@ eval {
 	}
 	
 	push(@values, escapeHTML(param('addinfo')));
+
 	my $commavalues = join(', ', sort(@values));
-	
- 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $commavalues, $privacy);
+	my $fragment =  substr $commavalues, 2;
+ 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $fragment, $privacy);
 	
 	$done = 1;
     }
@@ -82,8 +83,8 @@ if ($@) {
     
     if ($@ =~ m/^merkki/) {
 	$message= itext::charerror();
-    } elsif ($@ =~ m/^email/) {
-	$message= itext::emailerror();
+#    } elsif ($@ =~ m/^email/) {
+#	$message= itext::emailerror();
     } else { 
 	$message = $@;
     }
