@@ -77,7 +77,8 @@ sub boxes {
 sub namesemail {
     my $n = shift;
     my @values = @{shift()};
-    return "$values[$n]->[0], $values[$n]->[1]<br>\n";
+    return "$values[$n]->[0], $values[$n]->[1]<br>\n" if ($values[$n]->[1]);
+    return "$values[$n]->[0]<br>\n" if !($values[$n]->[1]);
 }
 
 sub names {
