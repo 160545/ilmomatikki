@@ -84,7 +84,9 @@ sub boxes {
 sub namesemail {
     my $n = shift;
     my @values = @{shift()};
-    return "<tr><td>$values[$n]->[0], $values[$n]->[1]</td>" if ($values[$n]->[1]);
+    my $email = $values[$n]->[1];
+    $email =~ s/\@/ at /g;
+    return "<tr><td>$values[$n]->[0], ".$email ."</td>" if ($values[$n]->[1]);
     return "<tr><td>$values[$n]->[0]</td>" if !($values[$n]->[1]);
 }
 
