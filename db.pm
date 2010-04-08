@@ -77,7 +77,7 @@ sub select_names {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, privacy, submitted FROM participants");
+		       "SELECT name, email, privacy, submitted FROM participants ORDER BY submitted");
 }
 
 sub select_all {
@@ -85,7 +85,7 @@ sub select_all {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, allergy, privacy, grill, submitted FROM participants");
+		       "SELECT name, email, allergy, privacy, grill, submitted FROM participants ORDER BY submitted");
 }
 
 sub select_generic {

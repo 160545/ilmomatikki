@@ -82,7 +82,7 @@ eval {
 	push(@values, escapeHTML(param('addinfo')));
 
 	my $commavalues = join(', ', sort(@values));
-	my $fragment =  substr $commavalues, 2;
+	my $fragment =~ s/^, //;
  	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $fragment, $privacy, $grill, "now");
 	
 	$done = 1;
