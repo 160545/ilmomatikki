@@ -51,6 +51,7 @@ eval {
 	
 	my @values;
 	my $privacy;
+	my $grill;
 	my @value = grep {/^[0-9]+$/} param();
 	my @items = itext::allergy();	
 	
@@ -63,6 +64,16 @@ eval {
 	} else {
 	    $privacy = 3;
 	}
+
+	if (param('grilling') eq 'nogrill') {
+	    $grill = 1;
+	} elsif (param('grilling') eq 'maybegrill') {
+	    $grill = 2;
+	} elsif (param('grilling') eq 'yesgrill') {
+	    $grill = 3;
+	} else {
+	    $grill = 4;
+	}
 	
 	foreach my $item (@value) {
 	    push(@values, $items[$item]);
@@ -72,7 +83,7 @@ eval {
 
 	my $commavalues = join(', ', sort(@values));
 	my $fragment =  substr $commavalues, 2;
- 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $fragment, $privacy);
+ 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $fragment, $privacy, $grill, "now");
 	
 	$done = 1;
     }
@@ -108,6 +119,7 @@ if ($showall) {
     print header;
     print itext::otsikko();
     print itext::tulossa();
+    print itext::starttable();
     my @comers = db::select_names($dbh);
     for (my $n=0; $n < @comers; $n++) { 
 	if ($comers[$n]->[2] == '3') {
@@ -117,7 +129,9 @@ if ($showall) {
 	} elsif ($comers[$n]->[2] == '1') {
 	    print itext::namesnone();
 	}
+	print itext::ilmottu($n, \@comers);
     }
+    print itext::endtable();
     print itext::takaisin();
     print itext::endtags();
 } elsif ($ok) {

@@ -32,7 +32,7 @@ use CGI qw/:standard/;
 
 my $title = "Erkin valmistujaispippalot";
 my $header = "Ilmoittaudu Erkin valmistujaispippaloihin!";
-my @allergies = ("Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
+my @allergies = ("Alkoholiton", "Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
@@ -48,8 +48,12 @@ my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen";
 my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $done = "Ilmoittautuminen suoritettu.";
 my $takaisin = "Takaisin.";
+my $grill = "Grillausta?";
+my $grill1 = "En ajatellut grillata";
+my $grill2 = "Saatanpa grillatakin";
+my $grill3 = "Grilli kuumaksi!";
 
-sub otsikko { return "<html><head><title>$title</title></head><body>";}
+sub otsikko { return "<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
 sub headeri { return "<h1>$header</h1>";}
 
@@ -61,6 +65,9 @@ sub formi1 {
     return "<form name=\"ilmottaudu\" method=\"post\"> 
 $name<input type=\"text\" name=\"name\" size=30><br>\n \
 $email<input type=\"text\" name=\"email\" size=30><br>\n \ 
+<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
+<input type=\"radio\" name=\"grilling\" value=\"maybegrill\">$grill2\n \
+<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br> \
 $allerg";}
 
 sub formi2 {return "<br>$other<input type=\"text\" name=\"addinfo\" size=30><br>\n \
@@ -77,17 +84,27 @@ sub boxes {
 sub namesemail {
     my $n = shift;
     my @values = @{shift()};
-    return "$values[$n]->[0], $values[$n]->[1]<br>\n" if ($values[$n]->[1]);
-    return "$values[$n]->[0]<br>\n" if !($values[$n]->[1]);
+    return "<tr><td>$values[$n]->[0], $values[$n]->[1]</td>" if ($values[$n]->[1]);
+    return "<tr><td>$values[$n]->[0]</td>" if !($values[$n]->[1]);
 }
 
 sub names {
     my $n = shift;
     my @values = @{shift()};
-    return "$values[$n]->[0]<br>\n";
+    return "<tr><td>$values[$n]->[0]</td>";
 }
 
-sub namesnone { return "Anonyymi<br>\n";}
+sub ilmottu {
+    my $n = shift;
+    my @values = @{shift()};
+    return "<td>$values[$n]->[3]</td></tr>\n";
+}
+
+sub starttable {return "<table border=0";}
+
+sub endtable {return "</table";}
+
+sub namesnone { return "<tr><td>Anonyymi</td>\n";}
 
 sub endtags {return "</body></html>";}
 

@@ -80,12 +80,22 @@ my @comers = db::select_all($dbh);
 for (my $n=0; $n < @comers; $n++) { 
     print "<tr><td><input type=\"checkbox\" id=\"$n\" name=\"$n\"><label for=\"$n\">$comers[$n]->[0]&nbsp;&nbsp;&nbsp;$comers[$n]->[1]&nbsp;&nbsp;&nbsp;$comers[$n]->[2]&nbsp;&nbsp;&nbsp;";
     if ($comers[$n]->[3] == '1') {
-	print "ei n‰ytet‰ mit‰‰n</label></td></tr>\n";
+	print "ei n‰ytet‰ mit‰‰n&nbsp;&nbsp;&nbsp;\n";
     } elsif ($comers[$n]->[3] == '2') {
-	print "n‰ytet‰‰n vain nimi</label></td></tr>\n";
+	print "n‰ytet‰‰n vain nimi&nbsp;&nbsp;&nbsp;\n";
     } elsif ($comers[$n]->[3] == '3') {
-	print "n‰ytet‰‰n nimi ja email</label></td></tr>\n";
+	print "n‰ytet‰‰n nimi ja email&nbsp;&nbsp;&nbsp;\n";
     }
+    if ($comers[$n]->[4] == '1') {
+	print "En ajatellut grillata&nbsp;&nbsp;&nbsp;\n";
+    } elsif ($comers[$n]->[4] == '2') {
+	print "Saatanpa grillatakin&nbsp;&nbsp;&nbsp;\n";
+    } elsif ($comers[$n]->[4] == '3') {
+	print "Grilli kuumaksi&nbsp;&nbsp;&nbsp;\n";
+    } elsif ($comers[$n]->[4] == '4') {
+	print "Ei mielipidett‰ grillaukseen&nbsp;&nbsp;&nbsp;\n";
+    }
+    print "$comers[$n]->[5]</label></td></tr>\n";
 }
 print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut\">\n";
 print itext::endtags();
