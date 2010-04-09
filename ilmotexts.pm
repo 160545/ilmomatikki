@@ -96,6 +96,11 @@ sub names {
     return "<tr><td>$values[$n]->[0]</td>";
 }
 
+sub amount {
+    my @n = @{shift()};
+    return "<br><br><br>$n[0]->[0] tulijaa.";
+}
+
 sub ilmottu {
     my $n = shift;
     my @values = @{shift()};

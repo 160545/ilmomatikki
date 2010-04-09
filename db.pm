@@ -80,6 +80,16 @@ sub select_names {
 		       "SELECT name, email, privacy, submitted FROM participants ORDER BY submitted");
 }
 
+sub select_count {
+
+    my $dbh = shift;
+
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT COUNT(name) FROM participants");
+}
+
 sub select_all {
     my $dbh = shift;
     return 
