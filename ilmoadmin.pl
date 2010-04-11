@@ -48,7 +48,7 @@ eval {
 	}
 
 	for (my $n; $n < @values; $n++) {
-	    db::delete_record($dbh, $values[$n]->[0]);
+	    db::delete_record($dbh, $values[$n]->[0], $values[$n]->[5]);
 	}
     }
 

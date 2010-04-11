@@ -62,11 +62,12 @@ sub insert_comers {
 sub delete_record {
     my $dbh = shift;
     my $name = shift;
+    my $time = shift;
     my $sth;
 
-    $sth = $dbh->prepare("DELETE from participants WHERE name = ?")
+    $sth = $dbh->prepare("DELETE from participants WHERE name = ? and submitted = ?")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($name);
+    $sth->execute($name, $time);
     $sth->finish;
 }
 

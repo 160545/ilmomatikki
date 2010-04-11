@@ -82,8 +82,8 @@ eval {
 	push(@values, escapeHTML(param('addinfo')));
 
 	my $commavalues = join(', ', sort(@values));
-	my $fragment =~ s/^, //;
- 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $fragment, $privacy, $grill, "now");
+#	my $fragment =~ s/^, //;
+ 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $commavalues, $privacy, $grill, "now");
 	
 	$done = 1;
     }
