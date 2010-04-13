@@ -40,6 +40,33 @@ my $showall = url_param('tulijat');
 my $done = 0;
 my $ok = url_param('ok');
 
+my $configfile = "config";
+
+my $printgrill = 0;
+my $printnick = 0;
+my @allergies;
+
+#read allergies from config file:
+
+if (open(F, "<", $configfile)) {
+    my @temparr;
+    my $line;
+    while ($line = <F>) {
+        chomp $line;
+	if ($line =~ /^allergies/) {
+	    @temparr = split(/\= */,$line);
+	    @allergies = split(/,/,$temparr[1]);
+	} elsif ($line =~ /^nick/) {
+	    @temparr = split(/\= */,$line);
+	    $printnick = $temparr[1];
+	} elsif ($line =~ /^grill/) {
+	    @temparr = split(/\= */,$line);
+	    $printgrill = $temparr[1];
+	}
+    }
+}
+close (F);
+
 # virhek‰sittely tehd‰‰n eval-lohkon p‰‰tteeksi (diell‰ ilmoitetaan virheet)
 eval {
     if (param('ilmoa') && param('name')) {
@@ -49,11 +76,11 @@ eval {
 	die "merkki" if !(param('email') =~ /(^[^\@]+\@[^\@]+$)?/);
 	die "merkki" if !(param('email') =~ /(^[a-zA-Z0-9.Âˆ‰≈÷ƒ, -\+\-:\@]*?$)?/);
 	
-	my @values;
+	my @allergyvalues;
 	my $privacy;
 	my $grill;
+	my $nick;
 	my @value = grep {/^[0-9]+$/} param();
-	my @items = itext::allergy();	
 	
 	if (param('privacy') eq 'allinfo') {
 	    $privacy = 3;
@@ -65,25 +92,37 @@ eval {
 	    $privacy = 3;
 	}
 
-	if (param('grilling') eq 'nogrill') {
-	    $grill = 1;
-	} elsif (param('grilling') eq 'maybegrill') {
-	    $grill = 2;
-	} elsif (param('grilling') eq 'yesgrill') {
-	    $grill = 3;
+	if ($printgrill) {
+	    if (param('grilling') eq 'nogrill') {
+		$grill = 1;
+	    } elsif (param('grilling') eq 'maybegrill') {
+		$grill = 2;
+	    } elsif (param('grilling') eq 'yesgrill') {
+		$grill = 3;
+	    } else {
+		$grill = 4;
+	    }
 	} else {
-	    $grill = 4;
+	    $grill = 0;
+	}
+
+	if ($printnick) {
+	    $nick = escapeHTML(param('nick'));
+	} else {
+	    $nick = "undef";
 	}
 	
 	foreach my $item (@value) {
-	    push(@values, $items[$item]);
+	    push(@allergyvalues, $allergies[$item]);
 	}
-	
-	push(@values, escapeHTML(param('addinfo')));
 
-	my $commavalues = join(', ', sort(@values));
+	if (param('addinfo')) {
+	    push(@allergyvalues, escapeHTML(param('addinfo')));
+	}
+
+#	my $commavalues = join(', ', sort(@values));
 #	my $fragment =~ s/^, //;
- 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), $commavalues, $privacy, $grill, "now");
+ 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now");
 	
 	$done = 1;
     }
@@ -142,15 +181,22 @@ if ($showall) {
     print itext::takaisin();
     print itext::endtags();
 }  else {   
-    my @values = itext::allergy();
-    
     print header;
     print itext::otsikko();
     print itext::headeri();
-    print itext::formi1();
+    print itext::formi1alku();
+
+    if ($printnick) {
+	print itext::formi1nick();
+    }
     
-    for (my $n=0; $n < @values; $n++) { 
-	print itext::boxes($n);
+    if ($printgrill) {
+	print itext::formi1grill();
+    }    
+
+    print itext::allerg();
+    for (my $n=0; $n < @allergies; $n++) { 
+	print itext::boxes($n, \@allergies);
     }
     
     print itext::formi2();

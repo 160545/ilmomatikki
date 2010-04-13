@@ -32,7 +32,7 @@ use CGI qw/:standard/;
 
 my $title = "Erkin valmistujaispippalot";
 my $header = "Ilmoittaudu Erkin valmistujaispippaloihin!";
-my @allergies = ("Alkoholiton", "Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
+#my @allergies = ("Alkoholiton", "Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
@@ -52,6 +52,7 @@ my $grill = "Grillausta?";
 my $grill1 = "En ajatellut grillata";
 my $grill2 = "Saatanpa grillatakin";
 my $grill3 = "Grilli kuumaksi!";
+my $nick = "Irc nick";
 
 sub otsikko { return "<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
@@ -61,14 +62,19 @@ sub tulossa { return "<h1>$tulossa</h1>";}
 
 sub done { return $done;}
 
-sub formi1 {
+sub formi1alku {
     return "<form name=\"ilmottaudu\" method=\"post\"> 
 $name<input type=\"text\" name=\"name\" size=30><br>\n \
-$email<input type=\"text\" name=\"email\" size=30><br>\n \ 
-<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
+$email<input type=\"text\" name=\"email\" size=30><br>\n";}
+
+sub formi1nick {
+    return "$nick<input type=\"text\" name=\"nick\" size=30><br>\n";}
+
+sub formi1grill {
+    return "<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
 <input type=\"radio\" name=\"grilling\" value=\"maybegrill\">$grill2\n \
-<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br> \
-$allerg";}
+<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br>";}
+
 
 sub formi2 {return "<br>$other<input type=\"text\" name=\"addinfo\" size=30><br>\n \
 <br>$ohje<br><input type=\"radio\" name=\"privacy\" value=\"allinfo\">$ohje1\n \
@@ -78,7 +84,12 @@ sub formi2 {return "<br>$other<input type=\"text\" name=\"addinfo\" size=30><br>
 
 sub boxes { 
     my $n = shift;
+    my @allergies = @{shift()};
     return "<br><input type=\"checkbox\" id=\"$n\" name=\"$n\"><label for=\"$n\">$allergies[$n]</label>\n";
+}
+
+sub allerg {
+    return "$allerg";
 }
 
 sub namesemail {
@@ -119,7 +130,7 @@ sub ilmosivu { return "<br><br><br><a href=\"" . url(-relative=>1) . "?tulijat=1
 
 sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";}
 
-sub allergy { return @allergies;}
+#sub allergy { return @allergies;}
 
 sub charerror { return $charerror;}
 

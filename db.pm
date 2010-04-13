@@ -47,16 +47,38 @@ sub insert_comers {
     my $dbh = shift;
     my $name = shift;
     my $email = shift;
-    my $values = shift;
+    my @values = @{shift()};
     my $privacy = shift;
     my $grill = shift;
+    my $nick = shift;
     my $time = shift;
     my $sth;
+    my $sth2;
 
-    $sth = $dbh->prepare("INSERT INTO participants (name, email, allergy, privacy, grill, submitted) VALUES (?,?,?,?,?,?)")
+    if ($nick eq 'undef') {
+	$nick = '';
+    }
+
+    if (@values) {
+	$dbh->begin_work;
+	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, grill, submitted, nick, allergyid) VALUES (?,?,?,?,?,?,(SELECT COALESCE(MAX(allergyid),0)+1 FROM participants))")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($name, $email, $values, $privacy, $grill, $time);
-    $sth->finish;
+	$sth->execute($name, $email, $privacy, $grill, $time, $nick);
+	$sth->finish;
+	
+	foreach my $item (@values) {
+	    $sth2 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?,(SELECT allergyid FROM participants WHERE name = ? and submitted = ?))")
+		or die "Couldn't prepare statement: " . $dbh->errstr;
+	    $sth2->execute($item, $name, $time);
+	    $sth2->finish;
+	}
+	$dbh->commit;
+    } else {
+	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, grill, submitted, nick) VALUES (?,?,?,?,?,?)")
+	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	$sth->execute($name, $email, $privacy, $grill, $time, $nick);
+	$sth->finish;
+    }
 }
 
 sub delete_record {
