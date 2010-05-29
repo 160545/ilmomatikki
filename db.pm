@@ -49,9 +49,11 @@ sub insert_comers {
     my $email = shift;
     my @values = @{shift()};
     my $privacy = shift;
+    my $pw = shift;
     my $grill = shift;
     my $nick = shift;
     my $time = shift;
+    my $coo = shift;
     my $sth;
     my $sth2;
 
@@ -61,9 +63,9 @@ sub insert_comers {
 
     if (@values) {
 	$dbh->begin_work;
-	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, grill, submitted, nick, allergyid) VALUES (?,?,?,?,?,?,(SELECT COALESCE(MAX(allergyid),0)+1 FROM participants))")
+	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick, allergyid) VALUES (?,?,?,?,?,?,?,?,(SELECT COALESCE(MAX(allergyid),0)+1 FROM participants))")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-	$sth->execute($name, $email, $privacy, $grill, $time, $nick);
+	$sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick);
 	$sth->finish;
 	
 	foreach my $item (@values) {
@@ -74,9 +76,9 @@ sub insert_comers {
 	}
 	$dbh->commit;
     } else {
-	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, grill, submitted, nick) VALUES (?,?,?,?,?,?)")
+	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick) VALUES (?,?,?,?,?,?,?,?)")
 	    or die "Couldn't prepare statement: " . $dbh->errstr;
-	$sth->execute($name, $email, $privacy, $grill, $time, $nick);
+	$sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick);
 	$sth->finish;
     }
 }
@@ -86,17 +88,26 @@ sub delete_record {
     my $name = shift;
     my $time = shift;
     my $sth;
+    my $sth2;
+
+    my @id = select_allergyid($dbh, $name, $time);
 
     $sth = $dbh->prepare("DELETE from participants WHERE name = ? and submitted = ?")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
     $sth->execute($name, $time);
+
+    if ($id[0]) {
+	$sth2 = $dbh->prepare("DELETE from allergies WHERE id = ?")
+	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	$sth2->execute($id[0]);
+	$sth2->finish;
+    }
+    
     $sth->finish;
 }
 
 sub select_names {
-
     my $dbh = shift;
-
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
@@ -104,21 +115,72 @@ sub select_names {
 }
 
 sub select_count {
-
     my $dbh = shift;
-
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
 		       "SELECT COUNT(name) FROM participants");
 }
 
-sub select_all {
+sub select_allergyid {
+    my $dbh = shift;
+    my $name = shift;
+    my $time = shift;
+    return 
+	select_generic($dbh,
+		       sub{return @_},
+		       "SELECT allergyid FROM participants WHERE name = ? and submitted = ?",
+		       $name,$time);
+}
+
+sub select_cookie {
+    my $dbh = shift;
+    my $name = shift;
+    my $pw = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT cookie FROM participants WHERE name = ? and passwd = ?",
+		       $name,$pw);
+}
+
+sub select_all_part {
     my $dbh = shift;
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, allergy, privacy, grill, submitted FROM participants ORDER BY submitted");
+		       "SELECT name, email, nick, privacy, grill, submitted FROM participants ORDER BY submitted");
+}
+
+sub select_for_pw {
+    my $dbh = shift;
+    my $name = shift;
+    my $pw = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT name, email, nick, privacy, grill, passwd, allergyid, submitted FROM participants WHERE passwd = ? AND name = ?",
+		       $pw, $name);
+}
+
+sub select_for_cookie {
+    my $dbh = shift;
+    my $cookie = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT name, email, nick, privacy, grill, passwd, allergyid, submitted FROM participants WHERE cookie = ?",
+		       $cookie);
+}
+
+sub select_all_allerg {
+    my $dbh = shift;
+    my $id = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT allergy FROM allergies WHERE id = ?",
+		       $id);
 }
 
 sub select_generic {

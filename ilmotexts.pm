@@ -36,23 +36,30 @@ my $header = "Ilmoittaudu Erkin valmistujaispippaloihin!";
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
-my $ilmotext = "Ilmoittaudu!";
+our $ilmotext = "Ilmoittaudu!";
 my $ohje = "Minusta saa näkyä ilmoittautuneet-sivulla:";
-my $ohje1 = "Nimi ja sähköposti";
-my $ohje2 = "Vain nimi";
-my $ohje3 = "Ei mitään";
+our $ohje1 = "Nimi ja sähköposti";
+our $ohje2 = "Vain nimi";
+our $ohje3 = "Ei mitään";
 my $other = "Joku muu mikä:";
 my $tulijat = "Ilmoittautuneet";
+my $muokkaa = "Muokkaa tietoja";
 my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen";
 #my $emailerror = "Sähköpostiosoite on pakollinen";
 my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $done = "Ilmoittautuminen suoritettu.";
 my $takaisin = "Takaisin.";
 my $grill = "Grillausta?";
-my $grill1 = "En ajatellut grillata";
-my $grill2 = "Saatanpa grillatakin";
-my $grill3 = "Grilli kuumaksi!";
+our $grill1 = "En ajatellut grillata";
+our $grill2 = "Saatanpa grillatakin";
+our $grill3 = "Grilli kuumaksi!";
 my $nick = "Irc nick";
+my $pw = "Anna salasana jonka avulla voit myöhemmin muuttaa tietojasi:";
+my $askpw = "Salasana:";
+my $mheader = "Tietojen muokkaus";
+my $showinfo = "Näytä tiedot";
+our $change = "Muuta tietoja";
+my $anon = "Anonyymi";
 
 sub otsikko { return "<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
@@ -60,32 +67,94 @@ sub headeri { return "<h1>$header</h1>";}
 
 sub tulossa { return "<h1>$tulossa</h1>";}
 
+sub mheader { return "<h1>$mheader</h1>";}
+
 sub done { return $done;}
 
+sub kysypw {
+#    return "<form action=\"?muokkaa=1\" name=\"askpw\" method=\"post\"> \
+
+    return "<form name=\"askpw\" method=\"post\"> \
+$name<input type=\"text\" name=\"apwname\" size=30><br>\n
+$askpw<input type=\"password\" name=\"apw\" size=30><br>\n
+<br><input type=\"submit\" name=\"subpw\" value=\"$showinfo\">\n";}
+
 sub formi1alku {
-    return "<form name=\"ilmottaudu\" method=\"post\"> 
-$name<input type=\"text\" name=\"name\" size=30><br>\n \
-$email<input type=\"text\" name=\"email\" size=30><br>\n";}
+    my $formname = shift;
+    my @info = @{shift() || []};
+    return "<form name=\"$formname\" method=\"post\"> \
+$name<input type=\"text\" name=\"name\" size=30 value=\"$info[0]->[0]\"><br>\n \
+$email<input type=\"text\" name=\"email\" size=30 value=\"$info[0]->[1]\"><br>\n";}
 
 sub formi1nick {
-    return "$nick<input type=\"text\" name=\"nick\" size=30><br>\n";}
+    my @info = @{shift() || []};
+    return "$nick<input type=\"text\" name=\"nick\" size=30 value=\"$info[0]->[2]\"><br>\n";}
 
-sub formi1grill {
-    return "<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
-<input type=\"radio\" name=\"grilling\" value=\"maybegrill\">$grill2\n \
-<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br>";}
+sub formi1grill1 {
+    return "<br>$grill<br>";}
 
+sub formi1grill2c {
+    my $val= shift;
+    my $grill = shift;
+    return "<input type=\"radio\" name=\"grilling\" value=\"$val\" checked>$grill\n";}
 
-sub formi2 {return "<br>$other<input type=\"text\" name=\"addinfo\" size=30><br>\n \
-<br>$ohje<br><input type=\"radio\" name=\"privacy\" value=\"allinfo\">$ohje1\n \
-<input type=\"radio\" name=\"privacy\" value=\"nameinfo\">$ohje2\n \
-<input type=\"radio\" name=\"privacy\" value=\"noinfo\">$ohje3\n \
-<br><br><input type=\"submit\" name=\"ilmoa\" value=\"$ilmotext\">\n";}
+sub formi1grill2 {
+    my $val= shift;
+    my $grill = shift;
+    return "<input type=\"radio\" name=\"grilling\" value=\"$val\">$grill\n";}
+
+sub formi1grill3 {
+    return "<br><br>";}
+
+#sub formi1grill {
+#    my @info = @{shift() || []};
+#    return "<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
+#<input type=\"radio\" name=\"grilling\" value=\"maybegrill\">$grill2\n \
+#<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br>";}
+
+#sub formi1grill {
+#    return "<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
+#<input type=\"radio\" name=\"grilling\" value=\"maybegrill\">$grill2\n \
+#<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br>";}
+
+sub addfield {
+    my $val = shift;
+    return "<br>$other<input type=\"text\" name=\"addinfo\" size=30 value=\"$val\"><br>\n";}
+
+sub formpria {return "<br>$ohje<br>";} 
+
+sub formpri {
+    my $val = shift;
+    my $info = shift;    
+    return "<input type=\"radio\" name=\"privacy\" value=\"$val\">$info\n";}
+
+sub formpric {
+    my $val = shift;
+    my $info = shift;    
+    return "<input type=\"radio\" name=\"privacy\" value=\"$val\" checked>$info\n";}
+
+sub formend {
+    my $val = shift;
+    my $buttontext = shift;
+    return "<br><br>$pw<br><input type=\"password\" name=\"pw\" size=30><br>\n \
+<br><br><input type=\"submit\" name=\"$val\" value=\"$buttontext\">\n";} 
+
+#sub formi2 {return "<br>$ohje<br><input type=\"radio\" name=\"privacy\" value=\"allinfo\">$ohje1\n \
+##<input type=\"radio\" name=\"privacy\" value=\"nameinfo\">$ohje2\n \
+#<input type=\"radio\" name=\"privacy\" value=\"noinfo\">$ohje3\n \
+#<br>$pw<br><input type=\"text\" name=\"pw\" size=30><br>\n
+#<br><br><input type=\"submit\" name=\"ilmoa\" value=\"$ilmotext\">\n";}
 
 sub boxes { 
     my $n = shift;
     my @allergies = @{shift()};
     return "<br><input type=\"checkbox\" id=\"$n\" name=\"$n\"><label for=\"$n\">$allergies[$n]</label>\n";
+}
+
+sub boxescheck { 
+    my $n = shift;
+    my @allergies = @{shift()};
+    return "<br><input type=\"checkbox\" id=\"$n\" name=\"$n\" checked><label for=\"$n\">$allergies[$n]</label>\n";
 }
 
 sub allerg {
@@ -122,11 +191,13 @@ sub starttable {return "<table border=0";}
 
 sub endtable {return "</table";}
 
-sub namesnone { return "<tr><td>Anonyymi</td>\n";}
+sub namesnone { return "<tr><td>$anon</td>\n";}
 
 sub endtags {return "</body></html>";}
 
 sub ilmosivu { return "<br><br><br><a href=\"" . url(-relative=>1) . "?tulijat=1\">$tulijat</a>";}
+
+sub muokkaa { return "<br><a href=\"".url(-relative=>1)."?mpw=1\">$muokkaa</a>";}
 
 sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";}
 

@@ -41,7 +41,7 @@ eval {
     if (param('poista')) {
 	my @values;
 	my @value = grep {/^[0-9]+$/} param();
-	my @items = db::select_all($dbh);
+	my @items = db::select_all_part($dbh);
 
 	foreach my $item (@value) {
 	    push(@values, $items[$item]);
@@ -76,9 +76,22 @@ print header;
 print "<html><head><title>Ilmoittautumisen hallintasivu</title></head><body>";
 print "<h1>Tulijat:</h1>";
 print "<form name=\"adminilmo\"method=\"post\"><table border=1>";
-my @comers = db::select_all($dbh);
+my @comers = db::select_all_part($dbh);
+my @allergs;
+
 for (my $n=0; $n < @comers; $n++) { 
+    my @aid = db::select_allergyid($dbh, $comers[$n]->[0], $comers[$n]->[5]);
+
     print "<tr><td><input type=\"checkbox\" id=\"$n\" name=\"$n\"></td><td>$comers[$n]->[0]</td><td>$comers[$n]->[1]</td><td>$comers[$n]->[2]</td><td>";
+
+    if ($aid[0]) {
+	@allergs = db::select_all_allerg($dbh, $aid[0]);
+	for (my $n=0; $n < @allergs; $n++) {
+	    print "$allergs[$n]->[0] ";
+	}
+    }
+    print "</td><td>";
+    
     if ($comers[$n]->[3] == '1') {
 	print "ei n‰ytet‰ mit‰‰n</td><td>\n";
     } elsif ($comers[$n]->[3] == '2') {
@@ -94,6 +107,8 @@ for (my $n=0; $n < @comers; $n++) {
 	print "Grilli kuumaksi</td><td>\n";
     } elsif ($comers[$n]->[4] == '4') {
 	print "Ei mielipidett‰ grillaukseen</td><td>\n";
+    } elsif ($comers[$n]->[4] == '0') {
+	print "</td><td>\n";
     }
     print "$comers[$n]->[5]</td></tr>\n";
 }
