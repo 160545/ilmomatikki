@@ -60,6 +60,14 @@ my $showinfo = "Näytä tiedot";
 our $change = "Muuta tietoja";
 my $anon = "Anonyymi";
 
+sub coalesce { 
+    my $value = shift; 
+    while (!defined $value) { 
+	$value = shift; 
+    } 
+    return $value; 
+}
+
 sub otsikko { return "<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
 sub headeri { return "<h1>$header</h1>";}
@@ -80,13 +88,16 @@ $askpw<input type=\"password\" name=\"apw\" size=30><br>\n
 
 sub formi1alku {
     my $formname = shift;
+#    my @info = @{shift() || []};
     my @info = @{shift() || []};
+    @info = coalesce(@info, ["", ""]);
     return "<form name=\"$formname\" method=\"post\"> \
 $name<input type=\"text\" name=\"name\" size=30 value=\"$info[0]->[0]\"><br>\n \
 $email<input type=\"text\" name=\"email\" size=30 value=\"$info[0]->[1]\"><br>\n";}
 
 sub formi1nick {
     my @info = @{shift() || []};
+    @info = coalesce(@info, ["", "", ""]);
     return "$nick<input type=\"text\" name=\"nick\" size=30 value=\"$info[0]->[2]\"><br>\n";}
 
 sub formi1grill1 {
@@ -105,19 +116,8 @@ sub formi1grill2 {
 sub formi1grill3 {
     return "<br><br>";}
 
-#sub formi1grill {
-#    my @info = @{shift() || []};
-#    return "<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
-#<input type=\"radio\" name=\"grilling\" value=\"maybegrill\">$grill2\n \
-#<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br>";}
-
-#sub formi1grill {
-#    return "<br>$grill<br><input type=\"radio\" name=\"grilling\" value=\"nogrill\">$grill1\n \
-#<input type=\"radio\" name=\"grilling\" value=\"maybegrill\">$grill2\n \
-#<input type=\"radio\" name=\"grilling\" value=\"yesgrill\">$grill3\n<br><br>";}
-
 sub addfield {
-    my $val = shift;
+    my $val = coalesce(shift, "");
     return "<br>$other<input type=\"text\" name=\"addinfo\" size=30 value=\"$val\"><br>\n";}
 
 sub formpria {return "<br>$ohje<br>";} 
@@ -164,6 +164,7 @@ sub namesemail {
     my $n = shift;
     my @values = @{shift()};
     my $email = $values[$n]->[1];
+    $email = coalesce($email, "");
     $email =~ s/\@/ at /g;
     return "<tr><td>$values[$n]->[0], ".$email ."</td>" if ($values[$n]->[1]);
     return "<tr><td>$values[$n]->[0]</td>" if !($values[$n]->[1]);

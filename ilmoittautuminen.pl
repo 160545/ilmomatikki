@@ -101,16 +101,20 @@ eval {
 
 #	die "email" if !(param('email'));
 	die "merkki" if !(param('name') =~ /^[a-zA-Z.åöäÅÖÄ, -]*?$/);
-	die "merkki" if !(param('email') =~ /(^[^\@]+\@[^\@]+$)?/);
-	die "merkki" if !(param('email') =~ /(^[a-zA-Z0-9.åöäÅÖÄ, -\+\-:\@]*?$)?/);
-	
+	if (!defined(param('email'))) {
+	    die "merkki" if !(param('email') =~ /(^[^\@]+\@[^\@]+$)?/);
+	    die "merkki" if !(param('email') =~ /(^[a-zA-Z0-9.åöäÅÖÄ, -\+\-:\@]*?$)?/);
+	}	
+
 	my @allergyvalues;
 	my $privacy;
 	my $grill;
 	my $nick;
 	my @value = grep {/^[0-9]+$/} param();
 	
-	if (param('privacy') eq 'allinfo') {
+	if (!defined(param('privacy'))) {
+	    $privacy = 2;
+	} elsif (param('privacy') eq 'allinfo') {
 	    $privacy = 3;
 	} elsif (param('privacy') eq 'nameinfo') {
 	    $privacy = 2;
@@ -121,7 +125,9 @@ eval {
 	}
 
 	if ($printgrill) {
-	    if (param('grilling') eq 'nogrill') {
+	    if (!defined(param('grilling'))) {
+		$grill = 4;
+	    } elsif (param('grilling') eq 'nogrill') {
 		$grill = 1;
 	    } elsif (param('grilling') eq 'maybegrill') {
 		$grill = 2;
@@ -268,8 +274,10 @@ if ($showall) {
 	    if ($printornot) {
 		print itext::boxes($n, \@allergies);
 	    }
-	    if ($lastitem->[0] eq $allergies[$n]) {
-		$addfield = 0
+	    if (defined($lastitem->[0])) {
+		if ($lastitem->[0] eq $allergies[$n]) {
+		    $addfield = 0
+		}
 	    }
 	}
 	if ($addfield) {
