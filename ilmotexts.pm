@@ -32,7 +32,6 @@ use CGI qw/:standard/;
 
 my $title = "Erkin valmistujaispippalot";
 my $header = "Ilmoittaudu Erkin valmistujaispippaloihin!";
-#my @allergies = ("Alkoholiton", "Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
@@ -54,7 +53,7 @@ our $grill1 = "En ajatellut grillata";
 our $grill2 = "Saatanpa grillatakin";
 our $grill3 = "Grilli kuumaksi!";
 my $nick = "Irc nick";
-my $pw = "Anna salasana jonka avulla voit myöhemmin muuttaa tietojasi:";
+my $pw = "Anna salasana jonka avulla voit myöhemmin muuttaa tietojasi. Koneellesi tallennetaan myös cookie.";
 my $askpw = "Salasana:";
 my $mheader = "Tietojen muokkaus";
 my $showinfo = "Näytä tiedot";
