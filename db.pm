@@ -31,8 +31,6 @@ use strict;
 use CGI qw/:standard/;
 use DBI;
 
-#global database handler, slow to create & disconnect all the time, done only once
-
 sub debug {
     my $msg = shift;
     open(F, ">>", "/home/manti/public_html/ilmodev/ilmodebug.log");
@@ -40,6 +38,7 @@ sub debug {
     close(F);
 }
 
+#global database handler, slow to create & disconnect all the time, done only once
 sub connect_db {
     
     # variables for DB

@@ -66,6 +66,15 @@ sub random_string() {
     return $str; 
 }
 
+sub logging {
+    my $time = shift;
+    my $msg = shift;
+#    open(F, ">>", "/home/manti/public_html/ilmodev/ilmo.log");
+    open(F, ">>", "/home/manti/public_html/ilmo/ilmo.log");
+    print F "$time $msg\n";
+    close(F);
+}
+
 #read allergies from config file:
 if (open(F, "<", $configfile)) {
     my @temparr;
@@ -98,6 +107,8 @@ eval {
 	} else {
 	    (db::delete_user($dbh,param('ncpw')),undef);
 	}
+	$editpw=0;
+	logging(time(), param('name')." poisti ilmoittautumisensa.");
     }
     
     if (param('subpw') && param('apw')) {
@@ -166,6 +177,7 @@ eval {
 	    my $rand = random_string();
 	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);    
 	    db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, "now", $rand);
+	    logging(time(), param('name')." ilmoittautui.");
 	} elsif (param('submuok')) {
 	    my %cookies = fetch CGI::Cookie;
 	    if ($cookies{'ID'}) {
@@ -173,6 +185,7 @@ eval {
 	    } else {
 		db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now", undef,param('ncpw'));
 	    }
+	    logging(time(), param('name')." muokkasi ilmoittautumistaan.");
 	}
 	$done = 1;
     }
