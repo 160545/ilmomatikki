@@ -48,6 +48,8 @@ my $configfile = "config";
 
 my $printgrill = 0;
 my $printnick = 0;
+my $nocookie = 0;
+my $nocookiepw = "";
 my $cookieexpire;
 my @allergies;
 my @info;
@@ -89,23 +91,37 @@ close (F);
 
 # virhekäsittely tehdään eval-lohkon päätteeksi (diellä ilmoitetaan virheet)
 eval {
+    if (param('poista') && param('name')) {
+	my %cookies = fetch CGI::Cookie;
+	if ($cookies{'ID'}) {
+	    db::debug("cookie del");
+	    (db::delete_user($dbh,undef,$cookies{'ID'}->value));
+	} else {
+	    db::debug("pw del");
+	    (db::delete_user($dbh,param('ncpw')),undef);
+	}
+    }
+    
     if (param('subpw') && param('apw')) {
 	my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(param('apw'))));
 	$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire);
-
+	
 	$edit = 1;
 	$editpw = 0;
+	$nocookie = 1;
+	$nocookiepw = md5_hex(escapeHTML(param('apw')));
+	db::debug("cookie set to " . $nocookiepw);
     }
-
-    if (param('ilmoa') && param('name')) {
-
+    
+    if ((param('ilmoa') || param('submuok')) && param('name')) {
+	
 #	die "email" if !(param('email'));
 	die "merkki" if !(param('name') =~ /^[a-zA-Z.åöäÅÖÄ, -]*?$/);
-	if (!defined(param('email'))) {
-	    die "merkki" if !(param('email') =~ /(^[^\@]+\@[^\@]+$)?/);
-	    die "merkki" if !(param('email') =~ /(^[a-zA-Z0-9.åöäÅÖÄ, -\+\-:\@]*?$)?/);
-	}	
-
+#	if (!defined(param('email'))) {
+#	    die "merkki" if !(param('email') =~ /^([^\@]+\@[^\@]+)?$/);
+#	    die "merkki" if !(param('email') =~ /^([a-zA-Z0-9.åöäÅÖÄ, -\+\-:\@]*?)?$/);
+#	}	
+	
 	my @allergyvalues;
 	my $privacy;
 	my $grill;
@@ -123,7 +139,7 @@ eval {
 	} else {
 	    $privacy = 2;
 	}
-
+	
 	if ($printgrill) {
 	    if (!defined(param('grilling'))) {
 		$grill = 4;
@@ -139,7 +155,7 @@ eval {
 	} else {
 	    $grill = 0;
 	}
-
+	
 	if ($printnick) {
 	    $nick = escapeHTML(param('nick'));
 	} else {
@@ -149,17 +165,28 @@ eval {
 	foreach my $item (@value) {
 	    push(@allergyvalues, $allergies[$item]);
 	}
-
+	
 	if (param('addinfo')) {
 	    push(@allergyvalues, escapeHTML(param('addinfo')));
 	}
-
-	my $rand = random_string();
-	$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);
-
-
- 	db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, "now", $rand);
 	
+	db::debug("1");
+	if (param('ilmoa')) {
+	    (db::debug("2"));
+	    my $rand = random_string();
+	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);    
+	    db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, "now", $rand);
+	} elsif (param('submuok')) {
+	    (db::debug("3"));
+	    my %cookies = fetch CGI::Cookie;
+	    if ($cookies{'ID'}) {
+		(db::debug("cookie muok"));
+		db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now", $cookies{'ID'}->value, undef);
+	    } else {
+		(db::debug("arvot:".escapeHTML(param('name')).":".escapeHTML(param('email')).":".@allergyvalues.":".$privacy.":".$grill.":".$nick.":".param('ncpw').":"));
+		db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now", undef,param('ncpw'));
+	    }
+	}
 	$done = 1;
     }
 };
@@ -188,8 +215,10 @@ if (request_method() eq "POST") {
     $url .= "?ok=1" if ($done);
     $url .= "?muokkaa=1" if ($edit);
     $url .= "?mpw=1" if ($editpw);
-    print redirect(-uri=>$url,-cookie=>$cookie,-status=>303,-nph=>0);
-    exit 0;
+    if (!$nocookie) {
+	print redirect(-uri=>$url,-cookie=>$cookie,-status=>303,-nph=>0);
+	exit 0;
+    }
 }
 
 if ($showall) {
@@ -231,6 +260,14 @@ if ($showall) {
 	$edit = 1;
 	$editpw = 0;
     }
+
+    if ($nocookie) {
+	@info = db::select_for_pw($dbh, $nocookiepw, $cookie->value);
+	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
+
+	$edit = 1;
+	$editpw = 0;
+   }
 
     print itext::otsikko();
     print itext::mheader();
@@ -299,9 +336,11 @@ if ($showall) {
 	} else {
 	    print itext::formpri("allinfo", $itext::ohje1);
 	}	    
-	
+
+	print "<input type=\"hidden\" id=\"ncpw\" name=\"ncpw\" value=$nocookiepw>";
+	print "\n<br><br>";
 	print itext::formend("submuok",$itext::change);
-#tähän väliin kysy salasanaa, tulosta sitten oikeat infot ruudulle, ja talleta muokatut tiedot kantaan
+	print itext::formend("poista",$itext::remove);
     }
     print itext::takaisin();
     print itext::endtags();
@@ -331,6 +370,7 @@ if ($showall) {
     print itext::formpri("noinfo", $itext::ohje3);
     print itext::formpri("nameinfo", $itext::ohje2);
     print itext::formpri("allinfo", $itext::ohje1);
+    print itext::formpw();
     print itext::formend("ilmoa",$itext::ilmotext);
 
     print itext::ilmosivu();

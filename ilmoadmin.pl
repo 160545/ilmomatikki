@@ -80,12 +80,12 @@ my @comers = db::select_all_part($dbh);
 my @allergs;
 
 for (my $n=0; $n < @comers; $n++) { 
-    my @aid = db::select_allergyid($dbh, $comers[$n]->[0], $comers[$n]->[5]);
+#    my @aid = db::select_id($dbh, $comers[$n]->[0], $comers[$n]->[5]);
 
     print "<tr><td><input type=\"checkbox\" id=\"$n\" name=\"$n\"></td><td>$comers[$n]->[0]</td><td>$comers[$n]->[1]</td><td>$comers[$n]->[2]</td><td>";
 
-    if ($aid[0]) {
-	@allergs = db::select_all_allerg($dbh, $aid[0]);
+    if ($comers[$n]->[6]) {
+	@allergs = db::select_all_allerg($dbh, $comers[$n]->[6]);
 	for (my $n=0; $n < @allergs; $n++) {
 	    print "$allergs[$n]->[0] ";
 	}

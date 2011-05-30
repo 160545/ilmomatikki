@@ -30,8 +30,9 @@ package itext;
 use strict;
 use CGI qw/:standard/;
 
-my $title = "Erkin valmistujaispippalot";
-my $header = "Ilmoittaudu Erkin valmistujaispippaloihin!";
+my $title = "Tuparit!";
+my $header = "Ilmoittaudu Marjan ja Erkin tupareihin!";
+#my @allergies = ("Alkoholiton", "Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
@@ -58,6 +59,7 @@ my $askpw = "Salasana:";
 my $mheader = "Tietojen muokkaus";
 my $showinfo = "Näytä tiedot";
 our $change = "Muuta tietoja";
+our $remove = "Poista ilmoittautuminen";
 my $anon = "Anonyymi";
 
 sub coalesce { 
@@ -132,11 +134,12 @@ sub formpric {
     my $info = shift;    
     return "<input type=\"radio\" name=\"privacy\" value=\"$val\" checked>$info\n";}
 
+sub formpw {return "<br><br>$pw<br><input type=\"password\" name=\"pw\" size=30><br><br><br>\n";}
+
 sub formend {
     my $val = shift;
     my $buttontext = shift;
-    return "<br><br>$pw<br><input type=\"password\" name=\"pw\" size=30><br>\n \
-<br><br><input type=\"submit\" name=\"$val\" value=\"$buttontext\">\n";} 
+    return "<input type=\"submit\" name=\"$val\" value=\"$buttontext\">\n<br>";} 
 
 #sub formi2 {return "<br>$ohje<br><input type=\"radio\" name=\"privacy\" value=\"allinfo\">$ohje1\n \
 ##<input type=\"radio\" name=\"privacy\" value=\"nameinfo\">$ohje2\n \

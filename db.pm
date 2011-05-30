@@ -33,8 +33,15 @@ use DBI;
 
 #global database handler, slow to create & disconnect all the time, done only once
 
-sub connect_db {
+sub debug {
+    my $msg = shift;
+    open(F, ">>", "/home/manti/public_html/ilmodev/ilmodebug.log");
+    print F "$$ $msg\n";
+    close(F);
+}
 
+sub connect_db {
+    
     # variables for DB
     my $host = "modeemi";
     my $db = "ilmo";
@@ -56,32 +63,136 @@ sub insert_comers {
     my $coo = shift;
     my $sth;
     my $sth2;
-
+    
     if ($nick eq 'undef') {
 	$nick = '';
     }
-
-    if (@values) {
-	$dbh->begin_work;
-	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick, allergyid) VALUES (?,?,?,?,?,?,?,?,(SELECT COALESCE(MAX(allergyid),0)+1 FROM participants))")
+    
+    debug("insert");    
+    
+    $dbh->begin_work;
+    $sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick) VALUES (?,?,?,?,?,?,?,?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-	$sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick);
-	$sth->finish;
-	
+    $sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick);
+    $sth->finish;
+    
+    debug("insert2");
+    
+    if (@values) {
+	debug("insert if");	
 	foreach my $item (@values) {
-	    $sth2 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?,(SELECT allergyid FROM participants WHERE name = ? and submitted = ?))")
+	    debug("insert if silmukka ".$item.".");
+	    $sth2 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?,(SELECT id FROM participants WHERE name = ? and submitted = ?))")
 		or die "Couldn't prepare statement: " . $dbh->errstr;
 	    $sth2->execute($item, $name, $time);
 	    $sth2->finish;
 	}
-	$dbh->commit;
-    } else {
-	$sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick) VALUES (?,?,?,?,?,?,?,?)")
-	    or die "Couldn't prepare statement: " . $dbh->errstr;
-	$sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick);
-	$sth->finish;
     }
+    debug("insert3");
+    $dbh->commit;
+    debug("insert4");
 }
+
+sub update_comers {
+    my $dbh = shift;
+    my $name = shift;
+    my $email = shift;
+    my @values = @{shift()};
+    my $privacy = shift;
+    my $grill = shift;
+    my $nick = shift;
+    my $time = shift;
+    my $coo = shift;
+    my $pw = shift;
+    my $sth;
+    my $sth2;
+    my $sth3;
+    my $column;
+    my $pworcoo;
+    
+    if ($nick eq 'undef') {
+	$nick = '';
+    }
+    
+    debug("db");
+    
+    if (defined($coo) && !defined($pw)) {
+	$column="cookie";
+	$pworcoo=$coo;
+    } elsif (!defined($coo) && defined($pw)) {
+	$column="passwd";
+	$pworcoo=$pw;
+    }
+    
+    $dbh->begin_work;
+    $sth = $dbh->prepare("UPDATE participants SET name=?, email=?, privacy=?, grill=?, submitted=?, nick=? WHERE $column=?")
+        or die "Couldn't prepare statement: " . $dbh->errstr;
+    $sth->execute($name, $email, $privacy, $grill, $time, $nick, $pworcoo);
+    $sth->finish;
+    
+    debug("else");
+    $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=?)")
+	or die "Couldn't prepare statement: " . $dbh->errstr;
+    $sth2->execute($pworcoo);
+    $sth2->finish;    
+    
+    if (@values) {
+        debug("if");
+	foreach my $item (@values) {
+	    debug("insert if silmukka ".$item.".");
+	    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT id FROM participants WHERE $column=?))")
+		or die "Couldn't prepare statement: " . $dbh->errstr;
+	    $sth3->execute($item, $pworcoo);
+	    $sth3->finish;
+	}
+    }
+    $dbh->commit;
+}
+
+# sub update_comers_pw {
+#     my $dbh = shift;
+#     my $name = shift;
+#     my $email = shift;
+#     my @values = @{shift()};
+#     my $privacy = shift;
+#     my $grill = shift;
+#     my $nick = shift;
+#     my $time = shift;
+#     my $pw = shift;
+#     my $sth;
+#     my $sth2;
+#     my $sth3;
+
+#     debug("arvot:".$name.":".$email.":".@values.":".$privacy.":".$grill.":".$nick.":".$time.":".$pw.":");
+
+#     if ($nick eq 'undef') {
+# 	$nick = '';
+#     }
+    
+#     $dbh->begin_work;
+#     $sth = $dbh->prepare("UPDATE participants SET name=?, email=?, privacy=?, grill=?, submitted=?, nick=? WHERE passwd=?")
+# 	or die "Couldn't prepare statement: " . $dbh->errstr;
+#     $sth->execute($name, $email, $privacy, $grill, $time, $nick, $pw);
+#     $sth->finish;
+    
+#     debug("else");
+#     $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT allergyid FROM participants WHERE passwd=?)")
+# 	or die "Couldn't prepare statement: " . $dbh->errstr;
+#     $sth2->execute($pw);
+#     $sth2->finish;
+    
+#     if (@values) { 
+# 	debug("if");
+# 	foreach my $item (@values) {
+# 	    debug("insert if silmukka ".$item.".");
+# 	    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT allergyid FROM participants WHERE passwd=?))")
+# 		or die "Couldn't prepare statement: " . $dbh->errstr;
+# 	    $sth3->execute($item, $pw);
+# 	    $sth->finish;
+# 	}
+#     }
+#     $dbh->commit;
+# }
 
 sub delete_record {
     my $dbh = shift;
@@ -90,20 +201,51 @@ sub delete_record {
     my $sth;
     my $sth2;
 
-    my @id = select_allergyid($dbh, $name, $time);
-
+    $dbh->begin_work;
+    $sth2 = $dbh->prepare("DELETE from allergies WHERE id = (SELECT id FROM participants WHERE name = ? and submitted = ?)")
+	or die "Couldn't prepare statement: " . $dbh->errstr;
+    $sth2->execute($name, $time);
+    $sth2->finish;
+    
     $sth = $dbh->prepare("DELETE from participants WHERE name = ? and submitted = ?")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
     $sth->execute($name, $time);
-
-    if ($id[0]) {
-	$sth2 = $dbh->prepare("DELETE from allergies WHERE id = ?")
-	    or die "Couldn't prepare statement: " . $dbh->errstr;
-	$sth2->execute($id[0]);
-	$sth2->finish;
-    }
-    
     $sth->finish;
+    
+    $dbh->commit;
+}
+
+
+sub delete_user {
+    my $dbh = shift;
+    my $pw = shift;
+    my $coo = shift;
+    my $column = "";
+    my $pworcoo;
+
+    my $sth;
+    my $sth2;
+    
+    if (defined($coo) && !defined($pw)) {
+	$column="cookie";
+	$pworcoo=$coo;
+    } elsif (!defined($coo) && defined($pw)) {
+	$column="passwd";
+	$pworcoo=$pw;
+    }
+
+    $dbh->begin_work;
+    $sth2 = $dbh->prepare("DELETE from allergies WHERE id = (SELECT id FROM participants WHERE $column = ?)")
+	or die "Couldn't prepare statement: " . $dbh->errstr;
+    $sth2->execute($pworcoo);
+    $sth2->finish;
+    
+    $sth = $dbh->prepare("DELETE from participants WHERE $column = ?")
+ 	or die "Couldn't prepare statement: " . $dbh->errstr;
+    $sth->execute($pworcoo);
+    $sth->finish;
+    
+    $dbh->commit;
 }
 
 sub select_names {
@@ -122,16 +264,37 @@ sub select_count {
 		       "SELECT COUNT(name) FROM participants");
 }
 
-sub select_allergyid {
-    my $dbh = shift;
-    my $name = shift;
-    my $time = shift;
-    return 
-	select_generic($dbh,
-		       sub{return @_},
-		       "SELECT allergyid FROM participants WHERE name = ? and submitted = ?",
-		       $name,$time);
-}
+# sub select_part_id {
+#     my $dbh = shift;
+#     my $name = shift;
+#     my $time = shift;
+#     return 
+# 	select_generic($dbh,
+# 		       sub{return @_},
+# 		       "SELECT id FROM participants WHERE name = ? and submitted = ?",
+# 		       $name,$time);
+# }
+
+# sub select_part_id_pw {
+#     my $dbh = shift;
+#     my $pw = shift;
+#     return 
+# 	select_generic($dbh,
+# 		       sub{return @_},
+# 		       "SELECT id FROM participants WHERE passwd = ?",
+# 		       $pw);
+# }
+
+# sub select_id {
+#     my $dbh = shift;
+#     my $name = shift;
+#     my $time = shift;
+#     return
+# 	select_generic($dbh,
+# 		       sub{return [@_]},
+# 		       "SELECT allergyid FROM participants WHERE cookie = ?",
+# 		       $coo);
+# }
 
 sub select_cookie {
     my $dbh = shift;
@@ -149,18 +312,18 @@ sub select_all_part {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, submitted FROM participants ORDER BY submitted");
+		       "SELECT name, email, nick, privacy, grill, submitted, id FROM participants ORDER BY submitted");
 }
 
 sub select_for_pw {
     my $dbh = shift;
-    my $name = shift;
     my $pw = shift;
+    my $cookie = shift;
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, passwd, allergyid, submitted FROM participants WHERE passwd = ? AND name = ?",
-		       $pw, $name);
+		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted FROM participants WHERE passwd = ? AND cookie = ?",
+		       $pw, $cookie);
 }
 
 sub select_for_cookie {
@@ -169,7 +332,7 @@ sub select_for_cookie {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, passwd, allergyid, submitted FROM participants WHERE cookie = ?",
+		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted FROM participants WHERE cookie = ?",
 		       $cookie);
 }
 
