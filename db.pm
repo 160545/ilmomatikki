@@ -68,29 +68,21 @@ sub insert_comers {
 	$nick = '';
     }
     
-    debug("insert");    
-    
     $dbh->begin_work;
     $sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick) VALUES (?,?,?,?,?,?,?,?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
     $sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick);
     $sth->finish;
     
-    debug("insert2");
-    
     if (@values) {
-	debug("insert if");	
 	foreach my $item (@values) {
-	    debug("insert if silmukka ".$item.".");
 	    $sth2 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?,(SELECT id FROM participants WHERE name = ? and submitted = ?))")
 		or die "Couldn't prepare statement: " . $dbh->errstr;
 	    $sth2->execute($item, $name, $time);
 	    $sth2->finish;
 	}
     }
-    debug("insert3");
     $dbh->commit;
-    debug("insert4");
 }
 
 sub update_comers {
@@ -114,8 +106,6 @@ sub update_comers {
 	$nick = '';
     }
     
-    debug("db");
-    
     if (defined($coo) && !defined($pw)) {
 	$column="cookie";
 	$pworcoo=$coo;
@@ -130,16 +120,13 @@ sub update_comers {
     $sth->execute($name, $email, $privacy, $grill, $time, $nick, $pworcoo);
     $sth->finish;
     
-    debug("else");
     $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
     $sth2->execute($pworcoo);
     $sth2->finish;    
     
     if (@values) {
-        debug("if");
 	foreach my $item (@values) {
-	    debug("insert if silmukka ".$item.".");
 	    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT id FROM participants WHERE $column=?))")
 		or die "Couldn't prepare statement: " . $dbh->errstr;
 	    $sth3->execute($item, $pworcoo);
@@ -148,51 +135,6 @@ sub update_comers {
     }
     $dbh->commit;
 }
-
-# sub update_comers_pw {
-#     my $dbh = shift;
-#     my $name = shift;
-#     my $email = shift;
-#     my @values = @{shift()};
-#     my $privacy = shift;
-#     my $grill = shift;
-#     my $nick = shift;
-#     my $time = shift;
-#     my $pw = shift;
-#     my $sth;
-#     my $sth2;
-#     my $sth3;
-
-#     debug("arvot:".$name.":".$email.":".@values.":".$privacy.":".$grill.":".$nick.":".$time.":".$pw.":");
-
-#     if ($nick eq 'undef') {
-# 	$nick = '';
-#     }
-    
-#     $dbh->begin_work;
-#     $sth = $dbh->prepare("UPDATE participants SET name=?, email=?, privacy=?, grill=?, submitted=?, nick=? WHERE passwd=?")
-# 	or die "Couldn't prepare statement: " . $dbh->errstr;
-#     $sth->execute($name, $email, $privacy, $grill, $time, $nick, $pw);
-#     $sth->finish;
-    
-#     debug("else");
-#     $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT allergyid FROM participants WHERE passwd=?)")
-# 	or die "Couldn't prepare statement: " . $dbh->errstr;
-#     $sth2->execute($pw);
-#     $sth2->finish;
-    
-#     if (@values) { 
-# 	debug("if");
-# 	foreach my $item (@values) {
-# 	    debug("insert if silmukka ".$item.".");
-# 	    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT allergyid FROM participants WHERE passwd=?))")
-# 		or die "Couldn't prepare statement: " . $dbh->errstr;
-# 	    $sth3->execute($item, $pw);
-# 	    $sth->finish;
-# 	}
-#     }
-#     $dbh->commit;
-# }
 
 sub delete_record {
     my $dbh = shift;
@@ -263,38 +205,6 @@ sub select_count {
 		       sub{return [@_]},
 		       "SELECT COUNT(name) FROM participants");
 }
-
-# sub select_part_id {
-#     my $dbh = shift;
-#     my $name = shift;
-#     my $time = shift;
-#     return 
-# 	select_generic($dbh,
-# 		       sub{return @_},
-# 		       "SELECT id FROM participants WHERE name = ? and submitted = ?",
-# 		       $name,$time);
-# }
-
-# sub select_part_id_pw {
-#     my $dbh = shift;
-#     my $pw = shift;
-#     return 
-# 	select_generic($dbh,
-# 		       sub{return @_},
-# 		       "SELECT id FROM participants WHERE passwd = ?",
-# 		       $pw);
-# }
-
-# sub select_id {
-#     my $dbh = shift;
-#     my $name = shift;
-#     my $time = shift;
-#     return
-# 	select_generic($dbh,
-# 		       sub{return [@_]},
-# 		       "SELECT allergyid FROM participants WHERE cookie = ?",
-# 		       $coo);
-# }
 
 sub select_cookie {
     my $dbh = shift;

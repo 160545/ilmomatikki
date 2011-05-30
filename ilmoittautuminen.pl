@@ -94,10 +94,8 @@ eval {
     if (param('poista') && param('name')) {
 	my %cookies = fetch CGI::Cookie;
 	if ($cookies{'ID'}) {
-	    db::debug("cookie del");
 	    (db::delete_user($dbh,undef,$cookies{'ID'}->value));
 	} else {
-	    db::debug("pw del");
 	    (db::delete_user($dbh,param('ncpw')),undef);
 	}
     }
@@ -110,17 +108,11 @@ eval {
 	$editpw = 0;
 	$nocookie = 1;
 	$nocookiepw = md5_hex(escapeHTML(param('apw')));
-	db::debug("cookie set to " . $nocookiepw);
     }
     
     if ((param('ilmoa') || param('submuok')) && param('name')) {
 	
-#	die "email" if !(param('email'));
 	die "merkki" if !(param('name') =~ /^[a-zA-Z.åöäÅÖÄ, -]*?$/);
-#	if (!defined(param('email'))) {
-#	    die "merkki" if !(param('email') =~ /^([^\@]+\@[^\@]+)?$/);
-#	    die "merkki" if !(param('email') =~ /^([a-zA-Z0-9.åöäÅÖÄ, -\+\-:\@]*?)?$/);
-#	}	
 	
 	my @allergyvalues;
 	my $privacy;
@@ -170,20 +162,15 @@ eval {
 	    push(@allergyvalues, escapeHTML(param('addinfo')));
 	}
 	
-	db::debug("1");
 	if (param('ilmoa')) {
-	    (db::debug("2"));
 	    my $rand = random_string();
 	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);    
 	    db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, "now", $rand);
 	} elsif (param('submuok')) {
-	    (db::debug("3"));
 	    my %cookies = fetch CGI::Cookie;
 	    if ($cookies{'ID'}) {
-		(db::debug("cookie muok"));
 		db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now", $cookies{'ID'}->value, undef);
 	    } else {
-		(db::debug("arvot:".escapeHTML(param('name')).":".escapeHTML(param('email')).":".@allergyvalues.":".$privacy.":".$grill.":".$nick.":".param('ncpw').":"));
 		db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now", undef,param('ncpw'));
 	    }
 	}
@@ -196,8 +183,6 @@ if ($@) {
     
     if ($@ =~ m/^merkki/) {
 	$message= itext::charerror();
-#    } elsif ($@ =~ m/^email/) {
-#	$message= itext::emailerror();
     } else { 
 	$message = $@;
     }

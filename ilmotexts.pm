@@ -32,7 +32,6 @@ use CGI qw/:standard/;
 
 my $title = "Tuparit!";
 my $header = "Ilmoittaudu Marjan ja Erkin tupareihin!";
-#my @allergies = ("Alkoholiton", "Gluteeniton","Kananmunaton","Laktoositon","Lihaani","Luomu","Luontaisesti gluteeniton","Maidoton","Mauton","Pähkinätön","Rasvaton","Soijalesitiinitön","Soijaton","Suolaton","Viherpiipertäjä","Vähälaktoosinen (Hyla)");
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
@@ -45,7 +44,6 @@ my $other = "Joku muu mikä:";
 my $tulijat = "Ilmoittautuneet";
 my $muokkaa = "Muokkaa tietoja";
 my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen";
-#my $emailerror = "Sähköpostiosoite on pakollinen";
 my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $done = "Ilmoittautuminen suoritettu.";
 my $takaisin = "Takaisin.";
@@ -81,8 +79,6 @@ sub mheader { return "<h1>$mheader</h1>";}
 sub done { return $done;}
 
 sub kysypw {
-#    return "<form action=\"?muokkaa=1\" name=\"askpw\" method=\"post\"> \
-
     return "<form name=\"askpw\" method=\"post\"> \
 $name<input type=\"text\" name=\"apwname\" size=30><br>\n
 $askpw<input type=\"password\" name=\"apw\" size=30><br>\n
@@ -90,7 +86,6 @@ $askpw<input type=\"password\" name=\"apw\" size=30><br>\n
 
 sub formi1alku {
     my $formname = shift;
-#    my @info = @{shift() || []};
     my @info = @{shift() || []};
     @info = coalesce(@info, ["", ""]);
     return "<form name=\"$formname\" method=\"post\"> \
@@ -140,12 +135,6 @@ sub formend {
     my $val = shift;
     my $buttontext = shift;
     return "<input type=\"submit\" name=\"$val\" value=\"$buttontext\">\n<br>";} 
-
-#sub formi2 {return "<br>$ohje<br><input type=\"radio\" name=\"privacy\" value=\"allinfo\">$ohje1\n \
-##<input type=\"radio\" name=\"privacy\" value=\"nameinfo\">$ohje2\n \
-#<input type=\"radio\" name=\"privacy\" value=\"noinfo\">$ohje3\n \
-#<br>$pw<br><input type=\"text\" name=\"pw\" size=30><br>\n
-#<br><br><input type=\"submit\" name=\"ilmoa\" value=\"$ilmotext\">\n";}
 
 sub boxes { 
     my $n = shift;
@@ -204,11 +193,6 @@ sub muokkaa { return "<br><a href=\"".url(-relative=>1)."?mpw=1\">$muokkaa</a>";
 
 sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";}
 
-#sub allergy { return @allergies;}
-
 sub charerror { return $charerror;}
-
-#sub emailerror { return $emailerror;}
-
 
 return 1;
