@@ -50,6 +50,7 @@ my $printgrill = 0;
 my $printnick = 0;
 my $printnocome = 0;
 my $printcar = 0;
+my $printgrillp = 0;
 my $nocookie = 0;
 my $none = 0;
 my $nocookiepw = "";
@@ -102,6 +103,9 @@ if (open(F, "<", $configfile)) {
 	} elsif ($line =~ /^car/) {
             @temparr = split(/\= */,$line);
             $printcar = $temparr[1];
+	} elsif ($line =~ /^grpercent/) {
+            @temparr = split(/\= */,$line);
+            $printgrillp = $temparr[1];
 	}
     }
 }
@@ -283,6 +287,12 @@ if ($showall) {
 	print itext::ilmottu($n, \@comers);
     }
     print itext::endtable();
+
+    if($printgrill && $printgrillp) {
+	my @hotgrillers = db::count_grill_percent($dbh,"3");
+	my @maybegrillers = db::count_grill_percent($dbh,"2");
+	print itext::grillp(\@hotgrillers, \@maybegrillers);
+    }
 
     print itext::nottulossa();
     print itext::starttable();

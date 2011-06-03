@@ -121,7 +121,7 @@ for (my $n=0; $n < @comers; $n++) {
 }
 print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut\">\n";
 
-my @count = db::select_count($dbh, "0");
+my @count = db::select_count($dbh, "1");
 print itext::amount(\@count);
 
 print "<h1>Epätulijat</h1>";
@@ -171,7 +171,7 @@ for (my $n=0; $n < @comers2; $n++) {
 }
 print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut\">\n";
 
-my @count2 = db::select_count($dbh, "1");
+my @count2 = db::select_count($dbh, "0");
 print itext::nocomeamount(\@count2);
 
 print itext::endtags();

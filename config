@@ -13,7 +13,10 @@ allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luont
 expire = Saturday, 03-Jul-2011 00:00:00 GMT
 
 #is person not coming registration option printed to form (1) or not (0)
-nocome=1
+nocome = 1
 
 #need space for car option printed to form (1) or not (0)
-car=1
+car = 1
+
+#print how many is going to grill in percents, also grill-option has to be on for the printing to be enabled
+grpercent = 1

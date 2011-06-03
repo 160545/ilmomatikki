@@ -71,6 +71,8 @@ our $nocome = "En ole tulossa";
 our $remove = "Poista ilmoittautuminen";
 my $anon = "Anonyymi";
 my $nocomealku = "Jos arvelet, ettet ole tulossa, paina ";
+my $hottext = "Grillin kuumotusta odottaa ";
+my $maybetext = "epävarmasti ";
 
 sub coalesce { 
     my $value = shift; 
@@ -91,6 +93,12 @@ sub nottulossa { return "<h1>$nottulossa</h1>";}
 sub mheader { return "<h1>$mheader</h1>";}
 
 sub done { return $done;}
+
+sub grillp {
+    my @hot = @{shift()};
+    my @maybe = @{shift()};
+    return "<br>$hottext $hot[0]->[0]%, $maybetext $maybe[0]->[0]%.<br>";
+}
 
 sub kysypw {
     return "<form name=\"askpw\" method=\"post\"> \

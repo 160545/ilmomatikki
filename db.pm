@@ -213,6 +213,16 @@ sub select_count {
 		       $come);
 }
 
+sub count_grill_percent {
+    my $dbh = shift;
+    my $grill = shift;
+    return
+        select_generic($dbh,
+                       sub{return [@_]},
+		       "SELECT ROUND(100*(SELECT COUNT(*) FROM participants WHERE grill=? and notcoming='1')/(SELECT COUNT(*) FROM participants WHERE notcoming='1'))",
+		       $grill);
+}
+
 sub select_cookie {
     my $dbh = shift;
     my $name = shift;
