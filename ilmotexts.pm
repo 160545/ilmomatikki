@@ -44,21 +44,33 @@ my $other = "Joku muu mikä:";
 my $tulijat = "Ilmoittautuneet";
 my $muokkaa = "Muokkaa tietoja";
 my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen";
+my $nameerror = "Nimi on pakollinen - Yritä uudelleen";
 my $tulossa = "Tähän mennessä ilmoittautuneet:";
+my $nottulossa = "Tähän mennessä eivät ole tulossa:";
 my $done = "Ilmoittautuminen suoritettu.";
+my $wasnotcoming = "Aiemmin ilmoitit ettet ole tulossa...";
 my $takaisin = "Takaisin.";
 my $grill = "Grillausta?";
+my $rest = "Mikäli et ole tulossa, voit hypätä suoraan lomakkeen loppuun";
+#my $rest2 = "(tai jos haluat salasanallisen korjausoption):";
+my $car = "Tarvitsen parkkitilaa";
+our $yescar = "Kyllä!";
+our $nocar = "Taksi/julkiset/liikunta on pop";
 our $grill1 = "En ajatellut grillata";
 our $grill2 = "Saatanpa grillatakin";
 our $grill3 = "Grilli kuumaksi!";
+our $coming1 = "Tulen sittenkin!";
+our $coming2 = "Tulossa pippaloihin!";
 my $nick = "Irc nick";
 my $pw = "Koneellesi tallennetaan cookie, jonka avulla voit myöhemmin muokata tietojasi. Mikäli samasta selaimesta rekisteröityy toinenkin henkilö tai cookie jostain syystä katoaa, voit käyttää seuraavaa salasanaa tietojen muokkaamiseen:";
 my $askpw = "Salasana:";
 my $mheader = "Tietojen muokkaus";
 my $showinfo = "Näytä tiedot";
 our $change = "Muuta tietoja";
+our $nocome = "En ole tulossa";
 our $remove = "Poista ilmoittautuminen";
 my $anon = "Anonyymi";
+my $nocomealku = "Jos arvelet, ettet ole tulossa, paina ";
 
 sub coalesce { 
     my $value = shift; 
@@ -73,6 +85,8 @@ sub otsikko { return "<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><ti
 sub headeri { return "<h1>$header</h1>";}
 
 sub tulossa { return "<h1>$tulossa</h1>";}
+
+sub nottulossa { return "<h1>$nottulossa</h1>";}
 
 sub mheader { return "<h1>$mheader</h1>";}
 
@@ -98,7 +112,20 @@ sub formi1nick {
     return "$nick<input type=\"text\" name=\"nick\" size=30 value=\"$info[0]->[2]\"><br>\n";}
 
 sub formi1grill1 {
-    return "<br>$grill<br>";}
+    return "<br><br>$grill<br>";}
+
+sub nocometextalku {
+    return "<br>$nocomealku<br>";}
+
+sub formresttext {
+#    return "<br><b><big><big>$rest</big></big></b> $rest2";}
+    return "<br><big>$rest</big>";}
+
+sub formwasnotcoming {
+    return "<br><br>$wasnotcoming<br>";}
+
+sub formcartext {
+    return "<br><br>$car<br>";}
 
 sub formi1grill2c {
     my $val= shift;
@@ -129,12 +156,32 @@ sub formpric {
     my $info = shift;    
     return "<input type=\"radio\" name=\"privacy\" value=\"$val\" checked>$info\n";}
 
-sub formpw {return "<br><br>$pw<br><input type=\"password\" name=\"pw\" size=30><br><br><br>\n";}
+sub formcar {
+    my $val= shift;
+    my $car = shift;
+    return "<input type=\"radio\" name=\"car\" value=\"$val\">$car\n";}
+
+sub formcarc {
+    my $val= shift;
+    my $car = shift;
+    return "<input type=\"radio\" name=\"car\" value=\"$val\" checked>$car\n";}
+
+sub formpw {return "<br><br>$pw<br><input type=\"password\" name=\"pw\" size=30><br><br>\n";}
 
 sub formend {
     my $val = shift;
     my $buttontext = shift;
     return "<input type=\"submit\" name=\"$val\" value=\"$buttontext\">\n<br>";} 
+
+sub checknocome { 
+    my $checknocome = shift;
+    my $msg = shift;
+    return "<input type=\"checkbox\" id=\"$checknocome\" name=\"$checknocome\"><label for=\"$checknocome\">$msg</label>\n";}
+
+sub checknocomec { 
+    my $checknocome = shift;
+    my $msg = shift;
+    return "<br><br><input type=\"checkbox\" id=\"$checknocome\" name=\"$checknocome\" checked><label for=\"$checknocome\">$msg</label>\n";}
 
 sub boxes { 
     my $n = shift;
@@ -173,15 +220,20 @@ sub amount {
     return "<br><br><br>$n[0]->[0] tulijaa.";
 }
 
+sub nocomeamount {
+    my @n = @{shift()};
+    return "<br><br><br>$n[0]->[0] ei tule.";
+}
+
 sub ilmottu {
     my $n = shift;
     my @values = @{shift()};
     return "<td>$values[$n]->[3]</td></tr>\n";
 }
 
-sub starttable {return "<table border=0";}
+sub starttable {return "<table border=\"0\">";}
 
-sub endtable {return "</table";}
+sub endtable {return "</table>";}
 
 sub namesnone { return "<tr><td>$anon</td>\n";}
 
@@ -194,5 +246,7 @@ sub muokkaa { return "<br><a href=\"".url(-relative=>1)."?mpw=1\">$muokkaa</a>";
 sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";}
 
 sub charerror { return $charerror;}
+
+sub nameerror { return $nameerror;}
 
 return 1;

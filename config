@@ -11,3 +11,9 @@ allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luont
 
 #Cookie expiration
 expire = Saturday, 03-Jul-2011 00:00:00 GMT
+
+#is person not coming registration option printed to form (1) or not (0)
+nocome=1
+
+#need space for car option printed to form (1) or not (0)
+car=1

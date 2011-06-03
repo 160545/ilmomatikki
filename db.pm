@@ -58,8 +58,10 @@ sub insert_comers {
     my $pw = shift;
     my $grill = shift;
     my $nick = shift;
+    my $car = shift;
     my $time = shift;
     my $coo = shift;
+    my $none= shift;
     my $sth;
     my $sth2;
     
@@ -68,9 +70,9 @@ sub insert_comers {
     }
     
     $dbh->begin_work;
-    $sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick) VALUES (?,?,?,?,?,?,?,?)")
+    $sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick, notcoming, car) VALUES (?,?,?,?,?,?,?,?,?,?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick);
+    $sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick, $none, $car);
     $sth->finish;
     
     if (@values) {
@@ -92,6 +94,8 @@ sub update_comers {
     my $privacy = shift;
     my $grill = shift;
     my $nick = shift;
+    my $car = shift;
+    my $none = shift;
     my $time = shift;
     my $coo = shift;
     my $pw = shift;
@@ -114,9 +118,9 @@ sub update_comers {
     }
     
     $dbh->begin_work;
-    $sth = $dbh->prepare("UPDATE participants SET name=?, email=?, privacy=?, grill=?, submitted=?, nick=? WHERE $column=?")
+    $sth = $dbh->prepare("UPDATE participants SET name=?, email=?, privacy=?, grill=?, submitted=?, nick=?, car=?, notcoming=? WHERE $column=?")
         or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($name, $email, $privacy, $grill, $time, $nick, $pworcoo);
+    $sth->execute($name, $email, $privacy, $grill, $time, $nick, $car, $none, $pworcoo);
     $sth->finish;
     
     $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=?)")
@@ -191,18 +195,22 @@ sub delete_user {
 
 sub select_names {
     my $dbh = shift;
+    my $nocome = shift;
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, privacy, submitted FROM participants ORDER BY submitted");
+		       "SELECT name, email, privacy, submitted FROM participants WHERE notcoming=? ORDER BY submitted",
+		       $nocome);
 }
 
 sub select_count {
     my $dbh = shift;
+    my $come = shift;
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT COUNT(name) FROM participants");
+		       "SELECT COUNT(name) FROM participants WHERE notcoming=?",
+		       $come);
 }
 
 sub select_cookie {
@@ -221,7 +229,7 @@ sub select_all_part {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, submitted, id FROM participants ORDER BY submitted");
+		       "SELECT name, email, nick, privacy, grill, submitted, id, notcoming, car FROM participants ORDER BY submitted");
 }
 
 sub select_for_pw {
@@ -231,7 +239,7 @@ sub select_for_pw {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted FROM participants WHERE passwd = ? AND cookie = ?",
+		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted, notcoming, car FROM participants WHERE passwd = ? AND cookie = ?",
 		       $pw, $cookie);
 }
 
@@ -241,7 +249,7 @@ sub select_for_cookie {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted FROM participants WHERE cookie = ?",
+		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted, notcoming, car FROM participants WHERE cookie = ?",
 		       $cookie);
 }
 

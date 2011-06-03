@@ -80,40 +80,99 @@ my @comers = db::select_all_part($dbh);
 my @allergs;
 
 for (my $n=0; $n < @comers; $n++) { 
-    print "<tr><td><input type=\"checkbox\" id=\"$n\" name=\"$n\"></td><td>$comers[$n]->[0]</td><td>$comers[$n]->[1]</td><td>$comers[$n]->[2]</td><td>";
-
-    if ($comers[$n]->[6]) {
-	@allergs = db::select_all_allerg($dbh, $comers[$n]->[6]);
-	for (my $n=0; $n < @allergs; $n++) {
-	    print "$allergs[$n]->[0] ";
+    if ($comers[$n]->[7]) {
+	print "<tr><td><input type=\"checkbox\" id=\"$n\" name=\"$n\"></td><td>$comers[$n]->[0]</td><td>$comers[$n]->[1]</td><td>$comers[$n]->[2]</td><td>";
+	
+	if ($comers[$n]->[6]) {
+	    @allergs = db::select_all_allerg($dbh, $comers[$n]->[6]);
+	    for (my $n=0; $n < @allergs; $n++) {
+		print "$allergs[$n]->[0] ";
+	    }
 	}
+	print "</td><td>";
+	
+	if ($comers[$n]->[3] == '1') {
+	    print "ei n‰ytet‰ mit‰‰n</td><td>\n";
+	} elsif ($comers[$n]->[3] == '2') {
+	    print "n‰ytet‰‰n vain nimi</td><td>\n";
+	} elsif ($comers[$n]->[3] == '3') {
+	    print "n‰ytet‰‰n nimi ja email</td><td>\n";
+	}
+	if ($comers[$n]->[4] == '1') {
+	    print "En ajatellut grillata</td><td>\n";
+	} elsif ($comers[$n]->[4] == '2') {
+	    print "Saatanpa grillatakin</td><td>\n";
+	} elsif ($comers[$n]->[4] == '3') {
+	    print "Grilli kuumaksi</td><td>\n";
+	} elsif ($comers[$n]->[4] == '4') {
+	    print "Ei mielipidett‰ grillaukseen</td><td>\n";
+	} elsif ($comers[$n]->[4] == '0') {
+	    print "</td><td>\n";
+	}
+	if ($comers[$n]->[8] == '1') {
+	    print "Parkkitilaa tarvitaan</td><td>\n";
+	} elsif ($comers[$n]->[8] == '0') {
+	    print "Ei parkkitilan tarvetta</td><td>\n";
+	} elsif ($comers[$n]->[8] == '2') {
+	    print "Ei kommenttia parkkitilasta</td><td>\n";
+	}
+	print "$comers[$n]->[5]</td></tr>\n";
     }
-    print "</td><td>";
-    
-    if ($comers[$n]->[3] == '1') {
-	print "ei n‰ytet‰ mit‰‰n</td><td>\n";
-    } elsif ($comers[$n]->[3] == '2') {
-	print "n‰ytet‰‰n vain nimi</td><td>\n";
-    } elsif ($comers[$n]->[3] == '3') {
-	print "n‰ytet‰‰n nimi ja email</td><td>\n";
-    }
-    if ($comers[$n]->[4] == '1') {
-	print "En ajatellut grillata</td><td>\n";
-    } elsif ($comers[$n]->[4] == '2') {
-	print "Saatanpa grillatakin</td><td>\n";
-    } elsif ($comers[$n]->[4] == '3') {
-	print "Grilli kuumaksi</td><td>\n";
-    } elsif ($comers[$n]->[4] == '4') {
-	print "Ei mielipidett‰ grillaukseen</td><td>\n";
-    } elsif ($comers[$n]->[4] == '0') {
-	print "</td><td>\n";
-    }
-    print "$comers[$n]->[5]</td></tr>\n";
 }
 print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut\">\n";
 
-my @count = db::select_count($dbh);
-
+my @count = db::select_count($dbh, "0");
 print itext::amount(\@count);
+
+print "<h1>Ep‰tulijat</h1>";
+print "<form name=\"adminilmo\"method=\"post\"><table border=1>";
+my @comers2 = db::select_all_part($dbh);
+my @allergs2;
+
+for (my $n=0; $n < @comers2; $n++) { 
+    if (!$comers2[$n]->[7]) {
+	print "<tr><td><input type=\"checkbox\" id=\"$n\" name=\"$n\"></td><td>$comers2[$n]->[0]</td><td>$comers2[$n]->[1]</td><td>$comers2[$n]->[2]</td><td>";
+	
+	if ($comers2[$n]->[6]) {
+	    @allergs2 = db::select_all_allerg($dbh, $comers2[$n]->[6]);
+	    for (my $n=0; $n < @allergs2; $n++) {
+		print "$allergs2[$n]->[0] ";
+	    }
+	}
+	print "</td><td>";
+	
+	if ($comers2[$n]->[3] == '1') {
+	    print "ei n‰ytet‰ mit‰‰n</td><td>\n";
+	} elsif ($comers2[$n]->[3] == '2') {
+	    print "n‰ytet‰‰n vain nimi</td><td>\n";
+	} elsif ($comers2[$n]->[3] == '3') {
+	    print "n‰ytet‰‰n nimi ja email</td><td>\n";
+	}
+	if ($comers2[$n]->[4] == '1') {
+	    print "En ajatellut grillata</td><td>\n";
+	} elsif ($comers2[$n]->[4] == '2') {
+	    print "Saatanpa grillatakin</td><td>\n";
+	} elsif ($comers2[$n]->[4] == '3') {
+	    print "Grilli kuumaksi</td><td>\n";
+	} elsif ($comers2[$n]->[4] == '4') {
+	    print "Ei mielipidett‰ grillaukseen</td><td>\n";
+	} elsif ($comers2[$n]->[4] == '0') {
+	    print "</td><td>\n";
+	}
+	if ($comers2[$n]->[8] == '1') {
+	    print "Parkkitilaa tarvitaan</td><td>\n";
+	} elsif ($comers2[$n]->[8] == '0') {
+	    print "Ei parkkitilan tarvetta</td><td>\n";
+	} elsif ($comers[$n]->[8] == '2') {
+	    print "Ei komenttia parkkitilasta</td><td>\n";
+	}
+	print "$comers2[$n]->[5]</td></tr>\n";
+    }
+}
+print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut\">\n";
+
+my @count2 = db::select_count($dbh, "1");
+print itext::nocomeamount(\@count2);
+
 print itext::endtags();
 

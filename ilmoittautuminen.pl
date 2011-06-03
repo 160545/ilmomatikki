@@ -48,7 +48,10 @@ my $configfile = "config";
 
 my $printgrill = 0;
 my $printnick = 0;
+my $printnocome = 0;
+my $printcar = 0;
 my $nocookie = 0;
+my $none = 0;
 my $nocookiepw = "";
 my $cookieexpire;
 my @allergies;
@@ -93,6 +96,12 @@ if (open(F, "<", $configfile)) {
      	} elsif ($line =~ /^expire/) {
 	    @temparr = split(/\= */,$line);
 	    $cookieexpire = $temparr[1];
+	} elsif ($line =~ /^nocome/) {
+            @temparr = split(/\= */,$line);
+            $printnocome = $temparr[1];
+	} elsif ($line =~ /^car/) {
+            @temparr = split(/\= */,$line);
+            $printcar = $temparr[1];
 	}
     }
 }
@@ -100,94 +109,127 @@ close (F);
 
 # virhekäsittely tehdään eval-lohkon päätteeksi (diellä ilmoitetaan virheet)
 eval {
-    if (param('poista') && param('name')) {
-	my %cookies = fetch CGI::Cookie;
-	if ($cookies{'ID'}) {
-	    (db::delete_user($dbh,undef,$cookies{'ID'}->value));
-	} else {
-	    (db::delete_user($dbh,param('ncpw')),undef);
-	}
-	$editpw=0;
-	logging(time(), param('name')." poisti ilmoittautumisensa.");
-    }
-    
-    if (param('subpw') && param('apw')) {
-	my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(param('apw'))));
-	$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire);
-	
-	$edit = 1;
-	$editpw = 0;
-	$nocookie = 1;
-	$nocookiepw = md5_hex(escapeHTML(param('apw')));
-    }
-    
-    if ((param('ilmoa') || param('submuok')) && param('name')) {
-	
-	die "merkki" if !(param('name') =~ /^[a-zA-Z.åöäÅÖÄ, -]*?$/);
-	
-	my @allergyvalues;
-	my $privacy;
-	my $grill;
-	my $nick;
-	my @value = grep {/^[0-9]+$/} param();
-	
-	if (!defined(param('privacy'))) {
-	    $privacy = 2;
-	} elsif (param('privacy') eq 'allinfo') {
-	    $privacy = 3;
-	} elsif (param('privacy') eq 'nameinfo') {
-	    $privacy = 2;
-	} elsif (param('privacy') eq 'noinfo') {
-	    $privacy = 1;
-	} else {
-	    $privacy = 2;
-	}
-	
-	if ($printgrill) {
-	    if (!defined(param('grilling'))) {
-		$grill = 4;
-	    } elsif (param('grilling') eq 'nogrill') {
-		$grill = 1;
-	    } elsif (param('grilling') eq 'maybegrill') {
-		$grill = 2;
-	    } elsif (param('grilling') eq 'yesgrill') {
-		$grill = 3;
-	    } else {
-		$grill = 4;
-	    }
-	} else {
-	    $grill = 0;
-	}
-	
-	if ($printnick) {
-	    $nick = escapeHTML(param('nick'));
-	} else {
-	    $nick = "undef";
-	}
-	
-	foreach my $item (@value) {
-	    push(@allergyvalues, $allergies[$item]);
-	}
-	
-	if (param('addinfo')) {
-	    push(@allergyvalues, escapeHTML(param('addinfo')));
-	}
-	
-	if (param('ilmoa')) {
-	    my $rand = random_string();
-	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);    
-	    db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, "now", $rand);
-	    logging(time(), param('name')." ilmoittautui.");
-	} elsif (param('submuok')) {
+    if (request_method() eq "POST") {
+	if (param('poista') && param('name')) {
 	    my %cookies = fetch CGI::Cookie;
-	    if ($cookies{'ID'}) {
-		db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now", $cookies{'ID'}->value, undef);
-	    } else {
-		db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, "now", undef,param('ncpw'));
+	    if (param('ncpw')) {
+		(db::delete_user($dbh,param('ncpw')),undef);
 	    }
-	    logging(time(), param('name')." muokkasi ilmoittautumistaan.");
+	    if ($cookies{'ID'}) {
+		(db::delete_user($dbh,undef,$cookies{'ID'}->value));
+	    }
+	    $editpw=0;
+	    logging(time(), param('name')." poisti ilmoittautumisensa.");
+	} elsif (param('subpw') && param('apw') && param('apwname')) {
+	    my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(param('apw'))));
+	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');
+	    
+	    $edit = 1;
+	    $editpw = 0;
+	    $nocookie = 1;
+	    $nocookiepw = md5_hex(escapeHTML(param('apw')));
+	} elsif ((param('ilmoa') || param('submuok') || param('notcoming')) && param('name')) {
+
+	    die "merkki" if !(param('name') =~ /^[a-zA-Z.åöäÅÖÄ, -]*?$/);
+	    
+	    my @allergyvalues;
+	    my $privacy;
+	    my $grill;
+	    my $car;
+	    my $nick;
+	    my @value = grep {/^[0-9]+$/} param();
+	    
+	    if (!defined(param('privacy'))) {
+		$privacy = 2;
+	    } elsif (param('privacy') eq 'allinfo') {
+		$privacy = 3;
+	    } elsif (param('privacy') eq 'nameinfo') {
+		$privacy = 2;
+	    } elsif (param('privacy') eq 'noinfo') {
+		$privacy = 1;
+	    } else {
+		$privacy = 2;
+	    }
+	    
+	    if ($printgrill) {
+		if (!defined(param('grilling'))) {
+		    $grill = 4;
+		} elsif (param('grilling') eq 'nogrill') {
+		    $grill = 1;
+		} elsif (param('grilling') eq 'maybegrill') {
+		    $grill = 2;
+		} elsif (param('grilling') eq 'yesgrill') {
+		    $grill = 3;
+		} else {
+		    $grill = 4;
+		}
+	    } else {
+		$grill = 0;
+	    }
+
+	    if ($printcar) {
+		if (!defined(param('car'))) {
+		    $car = "2";
+		} elsif (param('car') eq 'yescar') {
+		    $car = "1";
+		} elsif (param('car') eq 'nocar') {
+		    $car = "0";
+		}
+	    } else {
+		$car = "2";
+	    }
+	    
+	    if ($printnick) {
+		$nick = escapeHTML(param('nick'));
+	    } else {
+		$nick = "undef";
+	    }
+
+#1= coming, 0=notcoming
+	    if ($printnocome) {
+		if (param('coming')) {
+		    $none = "1";	
+		}
+	    } else {
+		$none = "undef";
+	    }
+	    
+	    foreach my $item (@value) {
+		push(@allergyvalues, $allergies[$item]);
+	    }
+	    
+	    if (param('addinfo')) {
+		push(@allergyvalues, escapeHTML(param('addinfo')));
+	    }
+	    
+	    if (param('ilmoa')) {
+
+		$none="1";
+		my $rand = random_string();
+		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');    
+		db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		logging(time(), param('name')." ilmoittautui.");
+	    } elsif (param('submuok')) {
+		my %cookies = fetch CGI::Cookie;
+		if (param('ncpw')) {
+		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, "now", undef,param('ncpw'));
+		}
+		if ($cookies{'ID'}) {
+		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, "now", $cookies{'ID'}->value, undef);
+		}
+		logging(time(), param('name')." muokkasi ilmoittautumistaan.");
+	    } elsif (param('notcoming')) {
+#1= coming, 0=notcoming
+		$none = "0";
+		my $rand = random_string();
+		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');    
+		db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		logging(time(), param('name')." ilmoitti ettei tule.");
+	    }
+	    $done = 1;
+	} else {
+	    die "nimi";
 	}
-	$done = 1;
     }
 };
 
@@ -196,6 +238,8 @@ if ($@) {
     
     if ($@ =~ m/^merkki/) {
 	$message= itext::charerror();
+    } elsif ($@ =~ m/^nimi/) {
+	$message= itext::nameerror();
     } else { 
 	$message = $@;
     }
@@ -210,7 +254,10 @@ if ($@) {
 if (request_method() eq "POST") {
     my $url = url(-relative=>1);
     $url .= "?tulijat=1" if ($showall);
-    $url .= "?ok=1" if ($done);
+    if ($done) {
+#	$nocookie = 0;
+	$url .= "?ok=1";
+    }
     $url .= "?muokkaa=1" if ($edit);
     $url .= "?mpw=1" if ($editpw);
     if (!$nocookie) {
@@ -224,7 +271,7 @@ if ($showall) {
     print itext::otsikko();
     print itext::tulossa();
     print itext::starttable();
-    my @comers = db::select_names($dbh);
+    my @comers = db::select_names($dbh,"1");
     for (my $n=0; $n < @comers; $n++) { 
 	if ($comers[$n]->[2] == '3') {
 	    print itext::namesemail($n, \@comers);
@@ -234,6 +281,21 @@ if ($showall) {
 	    print itext::namesnone();
 	}
 	print itext::ilmottu($n, \@comers);
+    }
+    print itext::endtable();
+
+    print itext::nottulossa();
+    print itext::starttable();
+    my @comers2 = db::select_names($dbh,"0");
+    for (my $n=0; $n < @comers2; $n++) { 
+	if ($comers2[$n]->[2] == '3') {
+	    print itext::namesemail($n, \@comers2);
+	} elsif ($comers2[$n]->[2] == '2') {
+	    print itext::names($n, \@comers2);
+	} elsif ($comers2[$n]->[2] == '1') {
+	    print itext::namesnone();
+	}
+	print itext::ilmottu($n, \@comers2);
     }
     print itext::endtable();
     print itext::muokkaa();
@@ -251,21 +313,19 @@ if ($showall) {
     print header;
     my %cookies = fetch CGI::Cookie;
 
-    if ($cookies{'ID'}) {
-	@info = db::select_for_cookie($dbh,$cookies{'ID'}->value);
-	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
-
-	$edit = 1;
-	$editpw = 0;
-    }
-
     if ($nocookie) {
 	@info = db::select_for_pw($dbh, $nocookiepw, $cookie->value);
 	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
-
+	
 	$edit = 1;
 	$editpw = 0;
-   }
+    } elsif ($cookies{'ID'}) {
+	@info = db::select_for_cookie($dbh,$cookies{'ID'}->value);
+	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
+	
+	$edit = 1;
+	$editpw = 0;
+    }
 
     print itext::otsikko();
     print itext::mheader();
@@ -275,7 +335,23 @@ if ($showall) {
 
 	print itext::formi1alku("muokkaus", \@info);	
 	print itext::formi1nick(\@info) if ($printnick);
-	
+	print itext::formpria();
+	if ($info[0]->[3] == 1) { 
+	    print itext::formpric("noinfo", $itext::ohje3);
+	} else {
+	    print itext::formpri("noinfo", $itext::ohje3);
+	}
+	if ($info[0]->[3] == 2) { 
+	    print itext::formpric("nameinfo", $itext::ohje2);
+	} else {
+	    print itext::formpri("nameinfo", $itext::ohje2);
+	}
+	if ($info[0]->[3] == 3) { 
+	    print itext::formpric("allinfo", $itext::ohje1);
+	} else {
+	    print itext::formpri("allinfo", $itext::ohje1);
+	}
+
 	if ($printgrill){
 	    print itext::formi1grill1();
 	    if ($info[0]->[4] == 1) { 
@@ -296,6 +372,7 @@ if ($showall) {
 	    print itext::formi1grill3();
 	}
 
+	print itext::allerg();
 	my $lastitem = $allpw[-1];
 	my $addfield = 1;
 	for (my $n=0; $n < @allergies; $n++) {	
@@ -318,22 +395,31 @@ if ($showall) {
 	if ($addfield) {
 	    print itext::addfield($lastitem->[0]);
 	}
-	print itext::formpria();
-	if ($info[0]->[3] == 1) { 
-	    print itext::formpric("noinfo", $itext::ohje3);
-	} else {
-	    print itext::formpri("noinfo", $itext::ohje3);
+
+	if ($printcar) {
+	    print itext::formcartext();
+	    if ($info[0]->[9] == 1) {
+		print itext::formcarc("yescar", $itext::yescar);
+	    } else {
+		print itext::formcar("yescar", $itext::yescar);
+	    }
+	    if ($info[0]->[9] == 0) {
+		print itext::formcarc("nocar", $itext::nocar);
+	    } else {
+		print itext::formcar("nocar", $itext::nocar);
+	    }
+	    print itext::formi1grill3();
 	}
-	if ($info[0]->[3] == 2) { 
-	    print itext::formpric("nameinfo", $itext::ohje2);
-	} else {
-	    print itext::formpri("nameinfo", $itext::ohje2);
-	}
-	if ($info[0]->[3] == 3) { 
-	    print itext::formpric("allinfo", $itext::ohje1);
-	} else {
-	    print itext::formpri("allinfo", $itext::ohje1);
-	}	    
+
+	if ($printnocome) {
+#1= coming, 0=notcoming, goes to if when 1
+	    if ($info[0]->[8]) {
+		print itext::checknocomec("coming",$itext::coming2);
+	    } else {
+		print itext::formwasnotcoming();
+		print itext::checknocome("coming",$itext::coming1);
+	    }
+	}	
 
 	print "<input type=\"hidden\" id=\"ncpw\" name=\"ncpw\" value=$nocookiepw>";
 	print "\n<br><br>";
@@ -347,8 +433,14 @@ if ($showall) {
     print itext::otsikko();
     print itext::headeri();
     print itext::formi1alku("ilmoittaudu");
-
     print itext::formi1nick() if ($printnick);
+    print itext::formpria();
+    print itext::formpri("noinfo", $itext::ohje3);
+    print itext::formpri("nameinfo", $itext::ohje2);
+    print itext::formpri("allinfo", $itext::ohje1);
+    print "<br><br>";
+
+    print itext::formresttext();
 
     if ($printgrill){
 	print itext::formi1grill1();
@@ -364,12 +456,20 @@ if ($showall) {
     }
 
     print itext::addfield();
-    print itext::formpria();
-    print itext::formpri("noinfo", $itext::ohje3);
-    print itext::formpri("nameinfo", $itext::ohje2);
-    print itext::formpri("allinfo", $itext::ohje1);
+
+    if ($printcar){
+	print itext::formcartext();
+	print itext::formcar("yescar", $itext::yescar);
+	print itext::formcar("nocar", $itext::nocar);
+	print itext::formi1grill3();
+    }
+
     print itext::formpw();
     print itext::formend("ilmoa",$itext::ilmotext);
+    if ($printnocome) {
+	print itext::nocometextalku();
+	print itext::formend("notcoming",$itext::nocome);
+    }
 
     print itext::ilmosivu();
     print itext::endtags();
