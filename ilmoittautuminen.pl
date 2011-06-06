@@ -216,10 +216,10 @@ eval {
 	    } elsif (param('submuok')) {
 		my %cookies = fetch CGI::Cookie;
 		if (param('ncpw')) {
-		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, "now", undef,param('ncpw'));
+		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'));
 		}
 		if ($cookies{'ID'}) {
-		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, "now", $cookies{'ID'}->value, undef);
+		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef);
 		}
 		logging(time(), param('name')." muokkasi ilmoittautumistaan.");
 	    } elsif (param('notcoming')) {

@@ -96,7 +96,7 @@ sub update_comers {
     my $nick = shift;
     my $car = shift;
     my $none = shift;
-    my $time = shift;
+#    my $time = shift;
     my $coo = shift;
     my $pw = shift;
     my $sth;
@@ -118,9 +118,9 @@ sub update_comers {
     }
     
     $dbh->begin_work;
-    $sth = $dbh->prepare("UPDATE participants SET name=?, email=?, privacy=?, grill=?, submitted=?, nick=?, car=?, notcoming=? WHERE $column=?")
+    $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=?")
         or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($name, $email, $privacy, $grill, $time, $nick, $car, $none, $pworcoo);
+    $sth->execute($none, $name, $email, $privacy, $grill, $nick, $car, $none, $pworcoo);
     $sth->finish;
     
     $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=?)")
