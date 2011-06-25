@@ -73,6 +73,7 @@ my $anon = "Anonyymi";
 my $nocomealku = "Jos arvelet, ettet ole tulossa, paina ";
 my $hottext = "Grillin kuumotusta odottaa ";
 my $maybetext = "epävarmasti ";
+our @headers = ("Name","Email","Nick","Allergies","Privacy","Grill","Car","Submitted");
 
 sub coalesce { 
     my $value = shift; 

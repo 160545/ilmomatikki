@@ -236,10 +236,23 @@ sub select_cookie {
 
 sub select_all_part {
     my $dbh = shift;
+    my $order = shift;
+    my $up = shift;
+    my $sql = "";
+
+    if (!defined($order)) {
+	$sql = "ORDER BY submitted";
+    } else {
+	if ($up == "0") {
+	    $sql = "ORDER BY $order ASC";
+	} elsif ($up == "1") {
+	    $sql = "ORDER BY $order DESC";
+	}
+    }
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, submitted, id, notcoming, car FROM participants ORDER BY submitted");
+		       "SELECT name, email, nick, privacy, grill, submitted, id, notcoming, car FROM participants $sql");   
 }
 
 sub select_for_pw {
@@ -266,10 +279,19 @@ sub select_for_cookie {
 sub select_all_allerg {
     my $dbh = shift;
     my $id = shift;
+    my $order = shift;
+    my $sql = "";
+
+    if ($order eq "all_down_asc") {
+	$sql = "ORDER by allergy ASC";
+    } elsif ($order eq "all_up_desc") {
+	$sql = "ORDER by allergy DESC";
+    }
+
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT allergy FROM allergies WHERE id = ?",
+		       "SELECT allergy FROM allergies WHERE id = ? $sql",
 		       $id);
 }
 
