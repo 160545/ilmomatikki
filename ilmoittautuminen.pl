@@ -46,6 +46,9 @@ my $editpw = url_param('mpw');
 
 my $configfile = "config";
 
+my $ilmolimit = $ENV{ILMOLIMIT};
+my $ilmolimitgroup = $ENV{ILMOLIMITGROUP};
+
 my $printgrill = 0;
 my $printnick = 0;
 my $printnocome = 0;
@@ -79,7 +82,7 @@ sub logging {
     close(F);
 }
 
-#read allergies from config file:
+#read allergies and all other stuff from config file:
 if (open(F, "<", $configfile)) {
     my @temparr;
     my $line;
@@ -142,6 +145,16 @@ eval {
 	    my $car;
 	    my $nick;
 	    my @value = grep {/^[0-9]+$/} param();
+
+	    if (!defined($ilmolimit)) {
+		# no limit
+		$ilmolimit = 10000;
+	    }
+
+	    if (!defined($ilmolimitgroup)) {
+		# default group
+		$ilmolimitgroup = 0;
+	    }
 	    
 	    if (!defined(param('privacy'))) {
 		$privacy = 2;
@@ -207,19 +220,18 @@ eval {
 	    }
 	    
 	    if (param('ilmoa')) {
-
 		$none="1";
 		my $rand = random_string();
 		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');    
-		db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
 		logging(time(), param('name')." ilmoittautui.");
 	    } elsif (param('submuok')) {
 		my %cookies = fetch CGI::Cookie;
 		if (param('ncpw')) {
-		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'));
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'));
 		}
 		if ($cookies{'ID'}) {
-		    db::update_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef);
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef);
 		}
 		logging(time(), param('name')." muokkasi ilmoittautumistaan.");
 	    } elsif (param('notcoming')) {
@@ -227,7 +239,7 @@ eval {
 		$none = "0";
 		my $rand = random_string();
 		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');    
-		db::insert_comers($dbh, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
 		logging(time(), param('name')." ilmoitti ettei tule.");
 	    }
 	    $done = 1;
@@ -244,6 +256,8 @@ if ($@) {
 	$message= itext::charerror();
     } elsif ($@ =~ m/^nimi/) {
 	$message= itext::nameerror();
+    } elsif ($@ =~ m/^raja/) {
+	$message= itext::limiterror();
     } else { 
 	$message = $@;
     }
@@ -343,6 +357,15 @@ if ($showall) {
 	print itext::kysypw();
     } elsif ($edit) {
 
+	if (defined($ilmolimitgroup)) {
+	    my @c = db::select_igroup_count($dbh, "1", $ilmolimitgroup);
+	    if ($c[0]->[0] >= $ilmolimit) {
+		print itext::limitover(($c[0]->[0]-$ilmolimit));
+	    } else {
+		print itext::limitleft(($ilmolimit-$c[0]->[0]));
+	    }
+	}
+	
 	print itext::formi1alku("muokkaus", \@info);	
 	print itext::formi1nick(\@info) if ($printnick);
 	print itext::formpria();
@@ -442,6 +465,16 @@ if ($showall) {
     print header;
     print itext::otsikko();
     print itext::headeri();
+
+    if (defined($ilmolimitgroup)) {
+	my @c = db::select_igroup_count($dbh, "1", $ilmolimitgroup);
+	if ($c[0]->[0] >= $ilmolimit) {
+	    print itext::limitover(($c[0]->[0]-$ilmolimit));
+	} else {
+	    print itext::limitleft(($ilmolimit-$c[0]->[0]));
+	}
+    }
+
     print itext::formi1alku("ilmoittaudu");
     print itext::formi1nick() if ($printnick);
     print itext::formpria();

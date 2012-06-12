@@ -43,8 +43,9 @@ our $ohje3 = "Ei mitään";
 my $other = "Joku muu mikä:";
 my $tulijat = "Ilmoittautuneet";
 my $muokkaa = "Muokkaa tietoja";
-my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen";
-my $nameerror = "Nimi on pakollinen - Yritä uudelleen";
+my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen.";
+my $nameerror = "Nimi ja salasana on pakollinen - Yritä uudelleen.";
+my $limiterror = "Valitettavasti tapahtuma on jo täynnä.";
 my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $nottulossa = "Tähän mennessä eivät ole tulossa:";
 my $done = "Ilmoittautuminen suoritettu.";
@@ -73,6 +74,9 @@ my $anon = "Anonyymi";
 my $nocomealku = "Jos arvelet, ettet ole tulossa, paina ";
 my $hottext = "Grillin kuumotusta odottaa ";
 my $maybetext = "epävarmasti ";
+my $limitleft = "Vielä mahtuu! Tulijoita vs. tila: -";
+my $limitover = "Kas, nyt on käynyt siten, että suunniteltu nuppiluku on saavutettu/on jo ylitetty. Käytäthän harkintaa ilmoittautuess\
+asi. Tulijoita vs. tila: +";
 our @headers = ("Name","Email","Nick","Allergies","Privacy","Grill","Car","Submitted");
 
 sub coalesce { 
@@ -257,5 +261,15 @@ sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";
 sub charerror { return $charerror;}
 
 sub nameerror { return $nameerror;}
+
+sub limiterror { return $limiterror;}
+
+sub limitleft { 
+    my $c = shift;
+    return "<p class=\"lim\">$limitleft$c</p>"; }
+
+sub limitover { 
+    my $c = shift;
+    return "<p class=\"lim\">$limitover$c</p>"; }
 
 return 1;

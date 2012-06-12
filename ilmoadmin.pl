@@ -37,10 +37,101 @@ my $dbh=db::connect_db();
 
 my @comers = db::select_all_part($dbh);
 my @allergs;
+my @allergyheaders;
 my $udallergy = "";
+my $configfile = "config";
+
+#read allergies from config file:
+if (open(F, "<", $configfile)) {
+    my @temparr;
+    my $line;
+    while ($line = <F>) {
+        chomp $line;
+        if ($line =~ /^allergies/) {
+            @temparr = split(/\= */,$line);
+            @allergyheaders = split(/,/,$temparr[1]);
+        }
+    }
+}
+close (F);
 
 # virhekäsittely tehdään eval-lohkon päätteeksi (diellä ilmoitetaan virheet)
 eval {
+    if (param('export')) {
+	my $csvfile = "ilmo.csv";
+
+	local *FCSV;
+	open(FCSV, ">>", $csvfile) or die "Ei voi avata $csvfile";
+
+#each allergy is a header, 1 means checked, 0 no
+	print FCSV "Id,Nimi,Email,Nick,Privacy,Grill,Car yes(1)/no(0),Tulossa(1)/Ei(0),Submitted";
+	for (my $n=0; $n < @allergyheaders; $n++) {
+	    print FCSV ",".$allergyheaders[$n];
+	}
+	print FCSV ",Other\n";
+
+# 0== ei parkkitilaa/kommenttia siihen 1== parkkitilaa, 0 == ei tule, 1== tulee
+	@comers = db::select_all_part($dbh);
+	
+	for (my $n=0; $n < @comers; $n++) {
+	    print FCSV $comers[$n]->[6];
+	    print FCSV ",".$comers[$n]->[0];
+	    print FCSV ",".$comers[$n]->[1];
+	    print FCSV ",".$comers[$n]->[2];
+
+	    if ($comers[$n]->[3] == '1') {
+		print FCSV ",ei näytetä mitään";
+	    } elsif ($comers[$n]->[3] == '2') {
+		print FCSV ",näytetään vain nimi";
+	    } elsif ($comers[$n]->[3] == '3') {
+		print FCSV ",näytetään nimi ja email";
+	    } 
+	    if ($comers[$n]->[4] == '1') {
+		print FCSV ",En ajatellut grillata";
+	    } elsif ($comers[$n]->[4] == '2') {
+		print FCSV ",Saatanpa grillatakin";
+	    } elsif ($comers[$n]->[4] == '3') {
+		print FCSV ",Grilli kuumaksi";
+	    } elsif ($comers[$n]->[4] == '4') {
+		print FCSV ",Ei mielipidettä grillaukseen";
+	    } elsif ($comers[$n]->[4] == '0') {
+		print ",";
+	    } 
+	    if ($comers[$n]->[8] == '1') {
+		print FCSV ",1";
+	    } elsif ($comers[$n]->[8] == '0' || $comers[$n]->[8] == '2') {
+		print FCSV ",0";
+	    } 
+	    print FCSV ",".$comers[$n]->[7];
+	    print FCSV ",".$comers[$n]->[5];
+
+	    my $found = 0;
+	    if ($comers[$n]->[6]) {
+		@allergs = db::select_all_allerg($dbh, $comers[$n]->[6],$udallergy);
+		for (my $o=0; $o < @allergyheaders; $o++) {
+		    for (my $l=0; $l < @allergs; $l++) {
+			if ($allergyheaders[$o] eq $allergs[$l]->[0]) {
+			    $found = 1;
+			} 
+		    }
+		    if ($found == '1') {
+			print FCSV ",1";
+		    } else {
+			print FCSV ",0";
+		    }
+		    $found = 0;
+		}
+	    }
+	    for my $i (@allergs) {
+		if (!grep {$i->[0] eq $_} @allergyheaders) {
+		    print FCSV ",".$i->[0];
+		}
+	    }
+	    print FCSV "\n";
+	}
+	close(FCSV);
+    }
+
     if (param('up')) {
 #descending order
 	my $updown = "1";
@@ -211,6 +302,10 @@ print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut
 $udallergy = "";
 my @count2 = db::select_count($dbh, "0");
 print itext::nocomeamount(\@count2);
+
+print "<form name=\"adminexport\"method=\"post\">";
+print "<br><input type=\"submit\" name=\"export\" value=\"Exportoi tiedot CSV:ksi\"></form>\n";
+print "<a href=\"ilmoallergycount.pl\">Allergiayhteenveto</a><br>";
 
 print itext::endtags();
 

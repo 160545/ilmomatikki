@@ -12,3 +12,7 @@ text-align: center;
 input {
 margin: 3px;
 }
+p.lim {
+color: rgb(255,0,0);
+font-size:20px;
+}

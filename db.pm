@@ -51,6 +51,7 @@ sub connect_db {
 
 sub insert_comers {
     my $dbh = shift;
+    my $limitgroup = shift;
     my $name = shift;
     my $email = shift;
     my @values = @{shift()};
@@ -70,9 +71,9 @@ sub insert_comers {
     }
     
     $dbh->begin_work;
-    $sth = $dbh->prepare("INSERT INTO participants (name, email, privacy, passwd, grill, cookie, submitted, nick, notcoming, car) VALUES (?,?,?,?,?,?,?,?,?,?)")
+    $sth = $dbh->prepare("INSERT INTO participants (limitgroup, name, email, privacy, passwd, grill, cookie, submitted, nick, notcoming, car) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($name, $email, $privacy, $pw, $grill, $coo, $time, $nick, $none, $car);
+    $sth->execute($limitgroup, $name, $email, $privacy, $pw, $grill, $coo, $time, $nick, $none, $car);
     $sth->finish;
     
     if (@values) {
@@ -88,6 +89,7 @@ sub insert_comers {
 
 sub update_comers {
     my $dbh = shift;
+    my $limitgroup = shift;
     my $name = shift;
     my $email = shift;
     my @values = @{shift()};
@@ -118,9 +120,9 @@ sub update_comers {
     }
     
     $dbh->begin_work;
-    $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=?")
+    $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, limitgroup=?, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=?")
         or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($none, $name, $email, $privacy, $grill, $nick, $car, $none, $pworcoo);
+    $sth->execute($none, $limitgroup, $name, $email, $privacy, $grill, $nick, $car, $none, $pworcoo);
     $sth->finish;
     
     $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=?)")
@@ -203,6 +205,16 @@ sub select_names {
 		       $nocome);
 }
 
+sub select_all_count {
+    my $dbh = shift;
+    my $item = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT COUNT(allergy) FROM allergies WHERE allergy=?",
+		       $item);
+}
+
 sub select_count {
     my $dbh = shift;
     my $come = shift;
@@ -211,6 +223,17 @@ sub select_count {
 		       sub{return [@_]},
 		       "SELECT COUNT(name) FROM participants WHERE notcoming=?",
 		       $come);
+}
+
+sub select_igroup_count {
+    my $dbh = shift;
+    my $come = shift;
+    my $igroup = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT COUNT(name) FROM participants WHERE notcoming=? AND limitgroup=?",
+		       $come, $igroup);
 }
 
 sub count_grill_percent {
@@ -282,10 +305,14 @@ sub select_all_allerg {
     my $order = shift;
     my $sql = "";
 
-    if ($order eq "all_down_asc") {
-	$sql = "ORDER by allergy ASC";
-    } elsif ($order eq "all_up_desc") {
-	$sql = "ORDER by allergy DESC";
+    if (!defined($order)) {
+        $sql = "ORDER by allergy ASC";
+    } else {
+	if ($order eq "all_down_asc") {
+	    $sql = "ORDER by allergy ASC";
+	} elsif ($order eq "all_up_desc") {
+	    $sql = "ORDER by allergy DESC";
+	}
     }
 
     return 

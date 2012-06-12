@@ -20,3 +20,4 @@ car = 1
 
 #print how many is going to grill in percents, also grill-option has to be on for the printing to be enabled
 grpercent = 1
+
