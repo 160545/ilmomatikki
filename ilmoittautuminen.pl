@@ -133,7 +133,7 @@ eval {
 	    logging(time(), param('name')." poisti ilmoittautumisensa.");
 	} elsif (param('subpw') && param('apw') && param('apwname')) {
 	    my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(param('apw'))));
-	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');
+	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire,-path=>'url(-absolute=>1)');
 	    
 	    $edit = 1;
 	    $editpw = 0;
@@ -226,7 +226,7 @@ eval {
 	    if (param('ilmoa')) {
 		$none="1";
 		my $rand = random_string();
-		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');    
+		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
 		db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
 		logging(time(), param('name')." ilmoittautui.");
 	    } elsif (param('submuok')) {
@@ -242,7 +242,7 @@ eval {
 #1= coming, 0=notcoming
 		$none = "0";
 		my $rand = random_string();
-		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'/~manti/ilmodev/');    
+		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
 		db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
 		logging(time(), param('name')." ilmoitti ettei tule.");
 	    }
@@ -345,13 +345,21 @@ if ($showall) {
 	@info = db::select_for_pw($dbh, $nocookiepw, $cookie->value);
 	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
 	
-	$edit = 1;
+	if ($info[0]->[0] ne ""){
+	    $edit = 1;
+	} else {
+	    $edit = 0;
+	}
 	$editpw = 0;
     } elsif ($cookies{'ID'}) {
 	@info = db::select_for_cookie($dbh,$cookies{'ID'}->value);
 	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
-	
-	$edit = 1;
+
+	if ($info[0]->[0] ne ""){
+	    $edit = 1;
+	} else {
+            $edit = 0;
+        }
 	$editpw = 0;
     }
 
@@ -360,7 +368,6 @@ if ($showall) {
     if ($editpw) {
 	print itext::kysypw();
     } elsif ($edit) {
-
 	if (defined($ilmolimitgroup)) {
 	    my @c = db::select_igroup_count($dbh, "1", $ilmolimitgroup);
 	    if ($c[0]->[0] >= $ilmolimit) {
@@ -464,6 +471,8 @@ if ($showall) {
 	print "\n<br><br>";
 	print itext::formend("submuok",$itext::change);
 	print itext::formend("poista",$itext::remove);
+    } else {
+	print itext::ilmoaensin();
     }
     print itext::takaisin();
     print itext::endtags();
