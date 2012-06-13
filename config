@@ -6,11 +6,14 @@ nick = 1
 #is the grill-field printed to form (1) or not (0)
 grill = 1
 
+#are allergies printed to form (1) or not (0)
+praller = 0
+
 #List of allergies printed to form (format has to be followed):
-allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luontaisesti gluteeniton,Maidoton,Mauton,Pähkinätön,Rasvaton,Soijalesitiinitön,Soijaton,Suolaton,Viherpiipertäjä,Vähälaktoosinen
+allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luontaisesti gluteeniton,Maidoton,Mauton,Pähkinätön,Rasvaton,Soijalesitiinitön,Soijaton,Suolaton,Vähälaktoosinen
 
 #Cookie expiration
-expire = Saturday, 03-Jul-2011 00:00:00 GMT
+expire = Sunday, 01-Jul-2012 00:00:00 GMT
 
 #is person not coming registration option printed to form (1) or not (0)
 nocome = 1

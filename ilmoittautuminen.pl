@@ -54,6 +54,7 @@ my $printnick = 0;
 my $printnocome = 0;
 my $printcar = 0;
 my $printgrillp = 0;
+my $printallergies = 0;
 my $nocookie = 0;
 my $none = 0;
 my $nocookiepw = "";
@@ -97,6 +98,9 @@ if (open(F, "<", $configfile)) {
 	} elsif ($line =~ /^grill/) {
 	    @temparr = split(/\= */,$line);
 	    $printgrill = $temparr[1];
+	} elsif ($line =~ /^praller/) {
+            @temparr = split(/\= */,$line);
+            $printallergies = $temparr[1];
      	} elsif ($line =~ /^expire/) {
 	    @temparr = split(/\= */,$line);
 	    $cookieexpire = $temparr[1];
@@ -405,28 +409,30 @@ if ($showall) {
 	    print itext::formi1grill3();
 	}
 
-	print itext::allerg();
-	my $lastitem = $allpw[-1];
-	my $addfield = 1;
-	for (my $n=0; $n < @allergies; $n++) {	
-	    my $printornot = 1;
-	    for (my $m=0; $m < @allpw; $m++) {	
-		if ($allergies[$n] eq $allpw[$m]->[0]) {
-		    print itext::boxescheck($n, \@allergies);
-		    $printornot = 0;
+	if ($printallergies) {
+	    print itext::allerg();
+	    my $lastitem = $allpw[-1];
+	    my $addfield = 1;
+	    for (my $n=0; $n < @allergies; $n++) {	
+		my $printornot = 1;
+		for (my $m=0; $m < @allpw; $m++) {	
+		    if ($allergies[$n] eq $allpw[$m]->[0]) {
+			print itext::boxescheck($n, \@allergies);
+			$printornot = 0;
+		    }
+		}
+		if ($printornot) {
+		    print itext::boxes($n, \@allergies);
+		}
+		if (defined($lastitem->[0])) {
+		    if ($lastitem->[0] eq $allergies[$n]) {
+			$addfield = 0
+		    }
 		}
 	    }
-	    if ($printornot) {
-		print itext::boxes($n, \@allergies);
+	    if ($addfield) {
+		print itext::addfield($lastitem->[0]);
 	    }
-	    if (defined($lastitem->[0])) {
-		if ($lastitem->[0] eq $allergies[$n]) {
-		    $addfield = 0
-		}
-	    }
-	}
-	if ($addfield) {
-	    print itext::addfield($lastitem->[0]);
 	}
 
 	if ($printcar) {
@@ -493,13 +499,15 @@ if ($showall) {
 	print itext::formi1grill3();
     }
 
-    print itext::allerg();
-    for (my $n=0; $n < @allergies; $n++) { 
-	print itext::boxes($n, \@allergies);
+    if ($printallergies) {
+	print itext::allerg();
+	for (my $n=0; $n < @allergies; $n++) { 
+	    print itext::boxes($n, \@allergies);
+	}
+	
+	print itext::addfield();
     }
-
-    print itext::addfield();
-
+    
     if ($printcar){
 	print itext::formcartext();
 	print itext::formcar("yescar", $itext::yescar);

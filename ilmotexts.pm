@@ -1,4 +1,4 @@
-# Copyright manti <manti@modeemi.fi> 2009
+# Copyright manti <manti@modeemi.fi> 2009-2012
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,8 +30,8 @@ package itext;
 use strict;
 use CGI qw/:standard/;
 
-my $title = "Tuparit!";
-my $header = "Ilmoittaudu Marjan ja Erkin tupareihin!";
+my $title = "Pippalot!";
+my $header = "Ilmoittaudu Marjan ja Erkin kesäpippaloihin!";
 my $name = "Etu- ja sukunimi:";
 my $email = "Sähköposti:";
 my $allerg = "Rastita:";
