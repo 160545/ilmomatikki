@@ -162,7 +162,7 @@ eval {
 	    push(@values, $items[$item]);
 	}
 
-	for (my $n; $n < @values; $n++) {
+	for (my $n=0; $n < @values; $n++) {
 	    db::delete_record($dbh, $values[$n]->[0], $values[$n]->[5]);
 	}
     }
