@@ -64,7 +64,7 @@ eval {
 	open(FCSV, ">>", $csvfile) or die "Ei voi avata $csvfile";
 
 #each allergy is a header, 1 means checked, 0 no
-	print FCSV "Id,Nimi,Email,Nick,Privacy,Grill,Car yes(1)/no(0),Tulossa(1)/Ei(0),Submitted";
+	print FCSV "Id,Nimi,Email,Nick,Privacy,Grill,Car yes(1)/no(0),Tulossa(1)/Ei(0),Submitted,Group";
 	for (my $n=0; $n < @allergyheaders; $n++) {
 	    print FCSV ",".$allergyheaders[$n];
 	}
@@ -104,6 +104,7 @@ eval {
 	    } 
 	    print FCSV ",".$comers[$n]->[7];
 	    print FCSV ",".$comers[$n]->[5];
+	    print FCSV ",".$comers[$n]->[9];
 
 	    my $found = 0;
 	    if ($comers[$n]->[6]) {
@@ -238,7 +239,8 @@ for (my $n=0; $n < @comers; $n++) {
 	} elsif ($comers[$n]->[8] == '2') {
 	    print "Ei kommenttia parkkitilasta</td><td>";
 	}
-	print "$comers[$n]->[5]</td></tr>\n";
+	print "$comers[$n]->[5]</td><td>";
+	print "$comers[$n]->[9]</td></tr>\n";
     }
 }
 print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut\"></form>\n";
@@ -295,7 +297,8 @@ for (my $n=0; $n < @comers; $n++) {
 	} elsif ($comers[$n]->[8] == '2') {
 	    print "Ei komenttia parkkitilasta</td><td>";
 	}
-	print "$comers[$n]->[5]</td></tr>\n";
+	print "$comers[$n]->[5]</td><td>";
+	print "$comers[$n]->[9]</td></tr>\n";
     }
 }
 print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut\"></form>\n";

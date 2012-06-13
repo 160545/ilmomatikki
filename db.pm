@@ -275,7 +275,7 @@ sub select_all_part {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, submitted, id, notcoming, car FROM participants $sql");   
+		       "SELECT name, email, nick, privacy, grill, submitted, id, notcoming, car, limitgroup FROM participants $sql");   
 }
 
 sub select_for_pw {

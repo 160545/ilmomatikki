@@ -77,7 +77,7 @@ my $maybetext = "epävarmasti ";
 my $limitleft = "Vielä mahtuu! Tulijoita vs. tila: -";
 my $limitover = "Kas, nyt on käynyt siten, että suunniteltu nuppiluku on saavutettu/on jo ylitetty. Käytäthän harkintaa ilmoittautuess\
 asi. Tulijoita vs. tila: +";
-our @headers = ("Name","Email","Nick","Allergies","Privacy","Grill","Car","Submitted");
+our @headers = ("Name","Email","Nick","Allergies","Privacy","Grill","Car","Submitted","Group");
 
 sub coalesce { 
     my $value = shift; 
