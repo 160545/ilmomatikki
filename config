@@ -13,7 +13,7 @@ praller = 0
 allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luontaisesti gluteeniton,Maidoton,Mauton,Pähkinätön,Rasvaton,Soijalesitiinitön,Soijaton,Suolaton,Vähälaktoosinen
 
 #Cookie expiration
-expire = Sunday, 01-Jul-2012 00:00:00 GMT
+expire = Saturday, 03-Aug-2013 00:00:00 GMT
 
 #is person not coming registration option printed to form (1) or not (0)
 nocome = 1

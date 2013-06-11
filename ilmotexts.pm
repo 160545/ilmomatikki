@@ -1,4 +1,4 @@
-# Copyright manti <manti@modeemi.fi> 2009-2012
+# Copyright manti <manti@modeemi.fi> 2009-2013
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,17 +40,22 @@ my $ohje = "Minusta saa näkyä ilmoittautuneet-sivulla:";
 our $ohje1 = "Nimi ja sähköposti";
 our $ohje2 = "Vain nimi";
 our $ohje3 = "Ei mitään";
+our $ohje4 = "Vain nick";
 my $other = "Joku muu mikä:";
 my $tulijat = "Ilmoittautuneet";
 my $muokkaa = "Muokkaa tietoja";
 my $charerror = "Voivoi, syötit epäkelvon merkin - Yritä uudelleen.";
 my $nameerror = "Nimi ja salasana on pakollinen - Yritä uudelleen.";
+my $pwcheckerror = "Nimellä ja salasanalla ei löydy tietoja, tarkista antamasi nimi ja salasana.";
 my $limiterror = "Valitettavasti tapahtuma on jo täynnä.";
 my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $nottulossa = "Tähän mennessä eivät ole tulossa:";
 my $done = "Ilmoittautuminen suoritettu.";
+my $edone = "Ilmoittautumista muokattu.";
+my $avecalso1 = "Ilmoita myös";
+my $avecalso2 = "avec!";
 my $wasnotcoming = "Aiemmin ilmoitit ettet ole tulossa...";
-my $takaisin = "Takaisin.";
+my $takaisin = "Takaisin";
 my $grill = "Grillausta?";
 my $rest = "Mikäli et ole tulossa, voit hypätä suoraan lomakkeen loppuun";
 #my $rest2 = "(tai jos haluat salasanallisen korjausoption):";
@@ -99,6 +104,8 @@ sub nottulossa { return "<h1>$nottulossa</h1>";}
 sub mheader { return "<h1>$mheader</h1>";}
 
 sub done { return $done;}
+
+sub edone { return $edone;}
 
 sub grillp {
     my @hot = @{shift()};
@@ -229,6 +236,12 @@ sub names {
     return "<tr><td>$values[$n]->[0]</td>";
 }
 
+sub namesnick {
+    my $n = shift;
+    my @values = @{shift()};
+    return "<tr><td>$values[$n]->[4]</td>";
+}
+
 sub amount {
     my @n = @{shift()};
     return "<br><br><br>$n[0]->[0] tulijaa.";
@@ -259,9 +272,13 @@ sub muokkaa { return "<br><a href=\"".url(-relative=>1)."?mpw=1\">$muokkaa</a>";
 
 sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";}
 
+sub avecalso { return "<br>$avecalso1 <a href=\"".url(-relative=>1)."\">$avecalso2</a><br>";}
+
 sub charerror { return $charerror;}
 
 sub nameerror { return $nameerror;}
+
+sub pwcheckerror { return $pwcheckerror;}
 
 sub limiterror { return $limiterror;}
 

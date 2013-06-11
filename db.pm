@@ -1,4 +1,4 @@
-# Copyright manti <manti@modeemi.fi> 2009
+# Copyright manti <manti@modeemi.fi> 2009-2013
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -101,6 +101,7 @@ sub update_comers {
 #    my $time = shift;
     my $coo = shift;
     my $pw = shift;
+    my $id = shift;
     my $sth;
     my $sth2;
     my $sth3;
@@ -120,21 +121,21 @@ sub update_comers {
     }
     
     $dbh->begin_work;
-    $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, limitgroup=?, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=?")
+    $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, limitgroup=?, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=? AND id = ?")
         or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($none, $limitgroup, $name, $email, $privacy, $grill, $nick, $car, $none, $pworcoo);
+    $sth->execute($none, $limitgroup, $name, $email, $privacy, $grill, $nick, $car, $none, $pworcoo, $id);
     $sth->finish;
     
-    $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=?)")
+    $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=? and id = ?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth2->execute($pworcoo);
+    $sth2->execute($pworcoo, $id);
     $sth2->finish;    
     
     if (@values) {
 	foreach my $item (@values) {
-	    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT id FROM participants WHERE $column=?))")
+	    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT id FROM participants WHERE $column=? AND id = ?))")
 		or die "Couldn't prepare statement: " . $dbh->errstr;
-	    $sth3->execute($item, $pworcoo);
+	    $sth3->execute($item, $pworcoo, $id);
 	    $sth3->finish;
 	}
     }
@@ -167,6 +168,7 @@ sub delete_user {
     my $dbh = shift;
     my $pw = shift;
     my $coo = shift;
+    my $id = shift;
     my $column = "";
     my $pworcoo;
 
@@ -182,14 +184,27 @@ sub delete_user {
     }
 
     $dbh->begin_work;
-    $sth2 = $dbh->prepare("DELETE from allergies WHERE id = (SELECT id FROM participants WHERE $column = ?)")
+    $sth2 = $dbh->prepare("DELETE from allergies WHERE id = (SELECT id FROM participants WHERE $column = ? AND id = ?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth2->execute($pworcoo);
+
+    debug("sql1:".$sth2);
+    debug($sth2->{Statement});
+    debug($dbh->{Statement});
+    $sth2->execute($pworcoo, $id);
     $sth2->finish;
-    
-    $sth = $dbh->prepare("DELETE from participants WHERE $column = ?")
+
+    debug($sth2->{Statement});
+    debug($dbh->{Statement});    
+
+    $sth = $dbh->prepare("DELETE from participants WHERE $column = ? AND id = ?")
  	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($pworcoo);
+    $sth->execute($pworcoo, $id);
+    my $scalar = '';
+    open( my $fh, "+>:scalar", \$scalar );
+    $dbh->trace( 2, $fh );
+    debug($scalar);
+    debug($sth->{Statement});
+    debug($dbh->{Statement});
     $sth->finish;
     
     $dbh->commit;
@@ -201,7 +216,7 @@ sub select_names {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, privacy, submitted FROM participants WHERE notcoming=? ORDER BY submitted",
+		       "SELECT name, email, privacy, submitted, nick FROM participants WHERE notcoming=? ORDER BY submitted",
 		       $nocome);
 }
 
@@ -257,6 +272,16 @@ sub select_cookie {
 		       $name,$pw);
 }
 
+sub select_cookie_exists {
+    my $dbh = shift;
+    my $cookie = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT cookie FROM participants WHERE cookie = ?",
+		       $cookie);
+}
+
 sub select_all_part {
     my $dbh = shift;
     my $order = shift;
@@ -296,6 +321,27 @@ sub select_for_cookie {
 	select_generic($dbh,
 		       sub{return [@_]},
 		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted, notcoming, car FROM participants WHERE cookie = ?",
+		       $cookie);
+    
+}
+
+sub select_for_id {
+    my $dbh = shift;
+    my $id = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted, notcoming, car FROM participants WHERE id = ?",
+		       $id);
+}
+
+sub select_cookie_count {
+    my $dbh = shift;
+    my $cookie = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT COUNT(cookie) FROM participants WHERE cookie = ?",
 		       $cookie);
 }
 

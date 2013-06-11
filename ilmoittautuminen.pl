@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright manti <manti@modeemi.fi> 2009
+# Copyright manti <manti@modeemi.fi> 2009-2013
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,12 +40,19 @@ my $dbh=db::connect_db();
 
 my $showall = url_param('tulijat');
 my $done = 0;
+my $editdone = 0;
+my $kenlie = 0;
 my $ok = url_param('ok');
+my $eok = url_param('eok');
 my $edit = url_param('muokkaa');
+my $editcoo = url_param('coomuok');
 my $editpw = url_param('mpw');
+my $coonames = url_param('coonames');
 
 my $configfile = "config";
 
+# If limit is over, ilmo is still possible but notice is shown
+# Group 1 is limited (Vincit people), 0 for basic, no limit
 my $ilmolimit = $ENV{ILMOLIMIT};
 my $ilmolimitgroup = $ENV{ILMOLIMITGROUP};
 
@@ -77,8 +84,17 @@ sub random_string() {
 sub logging {
     my $time = shift;
     my $msg = shift;
-#    open(F, ">>", "/home/manti/public_html/ilmodev/ilmo.log");
-    open(F, ">>", "/home/manti/public_html/ilmo/ilmo.log");
+    open(F, ">>", "/home/manti/public_html/ilmodev/ilmo.log");
+#    open(F, ">>", "/home/manti/public_html/ilmo/ilmo.log");
+    print F "$time $msg\n";
+    close(F);
+}
+
+sub debug {
+    my $time = shift;
+    my $msg = shift;
+    open(F, ">>", "/home/manti/public_html/ilmodev/idebug.log");
+#    open(F, ">>", "/home/manti/public_html/ilmo/ilmo.log");
     print F "$time $msg\n";
     close(F);
 }
@@ -124,19 +140,53 @@ eval {
 	if (param('poista') && param('name')) {
 	    my %cookies = fetch CGI::Cookie;
 	    if (param('ncpw')) {
-		(db::delete_user($dbh,param('ncpw')),undef);
+		debug(time(), "pw poisto");
+		db::delete_user($dbh,param('ncpw'),undef,param('npeditid'));
 	    }
-	    if ($cookies{'ID'}) {
-		(db::delete_user($dbh,undef,$cookies{'ID'}->value));
+	    if ($cookies{'ID'} && param('editid')) {
+		debug(time(), "cookie poisto");
+		db::delete_user($dbh,undef,$cookies{'ID'}->value,param('editid'));
 	    }
 	    $editpw=0;
+	    $editdone = 1;
 	    logging(time(), param('name')." poisti ilmoittautumisensa.");
+	} elsif (param('kenet') && param('kenetid')) {
+	    $kenlie = param('kenetid');
+	    my @info = db::select_for_id($dbh, $kenlie);
+	    debug(time(), "kenetname if 0->5:".$info[0]->[5]);
+	    debug(time(), "kenetname if md5_hex:".md5_hex(''));
+	    if ($info[0]->[5] ne md5_hex('')) {
+		$edit = 0;
+		$editcoo = 0;
+		$editpw = 1;
+		$coonames = 0;
+# handle like there is no cookie, since there is pw
+		#$nocookie = 1;
+		#$nocookiepw = $info[0]->[5];
+		debug(time(), "kenetname if osa");
+	    } else {
+		debug(time(), "kenetname:".param('kenetname'));
+		debug(time(), "kenetname id:".param('kenetid'));
+		$edit = 1;
+		$editcoo = 1;
+		$editpw = 0;
+#	    $kenlie = param('kenetname');
+		$coonames = 0;
+		debug(time(), "kenetname kenliessa:".$kenlie);
+		debug(time(), "kenetname edit:".$edit);
+		debug(time(), "kenetname editcoo:".$editcoo);
+	    }
 	} elsif (param('subpw') && param('apw') && param('apwname')) {
 	    my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(param('apw'))));
 	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire,-path=>'url(-absolute=>1)');
 	    
+	    if (!$rand[0]->[0]) {
+		die "pwcheck";
+	    }
+
 	    $edit = 1;
 	    $editpw = 0;
+	    $coonames = 0;
 	    $nocookie = 1;
 	    $nocookiepw = md5_hex(escapeHTML(param('apw')));
 	} elsif ((param('ilmoa') || param('submuok') || param('notcoming')) && param('name')) {
@@ -162,6 +212,8 @@ eval {
 	    
 	    if (!defined(param('privacy'))) {
 		$privacy = 2;
+	    } elsif (param('privacy') eq 'nickinfo') {
+		$privacy = 4;
 	    } elsif (param('privacy') eq 'allinfo') {
 		$privacy = 3;
 	    } elsif (param('privacy') eq 'nameinfo') {
@@ -224,29 +276,44 @@ eval {
 	    }
 	    
 	    if (param('ilmoa')) {
+#$none means notcoming = 0, coming = 1
 		$none="1";
-		my $rand = random_string();
-		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
-		db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
-		logging(time(), param('name')." ilmoittautui.");
+		my %cookies = fetch CGI::Cookie;
+		if ($cookies{'ID'} && db::select_cookie_exists($dbh, $cookies{'ID'}->value)) {
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
+		    logging(time(), param('name')." ilmoittautui.");
+		} else {
+		    my $rand = random_string();
+		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		    logging(time(), param('name')." ilmoittautui.");
+		}
+		$done = 1;
 	    } elsif (param('submuok')) {
 		my %cookies = fetch CGI::Cookie;
 		if (param('ncpw')) {
-		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'));
+		    debug(time(),"ncpw db update npeditid:".param('npeditid'));
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'),param('npeditid'));
 		}
-		if ($cookies{'ID'}) {
-		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef);
+		if ($cookies{'ID'} && param('editid')) {
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef, param('editid'));
 		}
 		logging(time(), param('name')." muokkasi ilmoittautumistaan.");
+		$editdone = 1;
 	    } elsif (param('notcoming')) {
 #1= coming, 0=notcoming
-		$none = "0";
-		my $rand = random_string();
-		$cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
-		db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		my %cookies = fetch CGI::Cookie;
+		if ($cookies{'ID'} && db::select_cookie_exists($dbh, $cookies{'ID'}->value)) {
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
+		} else {
+		    $none = "0";
+		    my $rand = random_string();
+		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		}
 		logging(time(), param('name')." ilmoitti ettei tule.");
+		$done = 1;
 	    }
-	    $done = 1;
 	} else {
 	    die "nimi";
 	}
@@ -260,6 +327,8 @@ if ($@) {
 	$message= itext::charerror();
     } elsif ($@ =~ m/^nimi/) {
 	$message= itext::nameerror();
+    } elsif ($@ =~ m/^pwcheck/) {
+	$message= itext::pwcheckerror();
     } elsif ($@ =~ m/^raja/) {
 	$message= itext::limiterror();
     } else { 
@@ -278,17 +347,54 @@ if (request_method() eq "POST") {
     $url .= "?tulijat=1" if ($showall);
     if ($done) {
 #	$nocookie = 0;
+	$coonames = 0;
+	$editpw = 0;
+	$edit = 0;
 	$url .= "?ok=1";
     }
+    if ($editdone) {
+#	$nocookie = 0;
+	$coonames = 0;
+	$editpw = 0;
+	$edit = 0;
+	$url .= "?eok=1";
+    }
     $url .= "?muokkaa=1" if ($edit);
+    $url .= "?coomuok=1" if ($editcoo);
     $url .= "?mpw=1" if ($editpw);
-    if (!$nocookie) {
+    $url .= "?coonames=1" if ($coonames);
+    if (!$nocookie && !$kenlie) {
+#    if (!$nocookie) {
+	debug(time(), "req method nocookie if");
+	debug(time(), "req method nocookie url:".$url);
 	print redirect(-uri=>$url,-cookie=>$cookie,-status=>303,-nph=>0);
 	exit 0;
     }
 }
 
-if ($showall) {
+if ($coonames) {
+    debug(time(), "if coonames");
+    my %cookies = fetch CGI::Cookie;
+    @info = db::select_for_cookie($dbh,$cookies{'ID'}->value);
+    @allpw = db::select_all_allerg($dbh,$info[0]->[6]);
+
+    debug(time(), "not kenlie:".$kenlie);
+
+    print header;
+    print "löytyi useampi, kenen tietoja haluat muokata:";
+    
+    for (my $n=0; $n < @info; $n++) { 		
+	$kenlie = 1;
+	$coonames = 0;
+	print $info[$n]->[0];
+	print "\n<br>";
+	print "<form name=\"kenet\" method=\"post\">";
+	print "<input type=\"hidden\" id=\"kenetname\" name=\"kenetname\" value=\"$info[$n]->[0]\">";
+	print "<input type=\"hidden\" id=\"kenetid\" name=\"kenetid\" value=\"$info[$n]->[6]\">";
+	print itext::formend("kenet",$info[$n]->[0]);
+	print "</form>";
+    }
+} elsif ($showall) {
     print header;
     print itext::otsikko();
     print itext::tulossa();
@@ -301,6 +407,8 @@ if ($showall) {
 	    print itext::names($n, \@comers);
 	} elsif ($comers[$n]->[2] == '1') {
 	    print itext::namesnone();
+	} elsif ($comers[$n]->[2] == '4') {
+	    print itext::namesnick($n, \@comers);
 	}
 	print itext::ilmottu($n, \@comers);
     }
@@ -333,41 +441,98 @@ if ($showall) {
     print header;
     print itext::otsikko();
     print itext::done();
+    print itext::avecalso();
+    print itext::ilmosivu();
+    print itext::muokkaa();
+    print itext::takaisin();
+    print itext::endtags();
+} elsif ($eok) {
+    print header;
+    print itext::otsikko();
+    print itext::edone();
     print itext::ilmosivu();
     print itext::muokkaa();
     print itext::takaisin();
     print itext::endtags();
 } elsif ($edit || $editpw) {
-    print header;
     my %cookies = fetch CGI::Cookie;
 
     if ($nocookie) {
-	@info = db::select_for_pw($dbh, $nocookiepw, $cookie->value);
+	debug(time(), "nocookie if editissa");
+	debug(time(), "nocookie apwname:".param('apwname'));
+	debug(time(), "nocookie nocoopw:".$nocookiepw);
+	if (!$cookies{'ID'}) {
+	    my @cookie = db::select_cookie($dbh, escapeHTML(param('apwname')),$nocookiepw);
+	    debug(time(), "nocookie cookie:".$cookie[0]->[0]);
+	    @info = db::select_for_pw($dbh, $nocookiepw, $cookie[0]->[0]);
+	} else {
+	    @info = db::select_for_pw($dbh, $nocookiepw, $cookies{'ID'}->value);
+	}
+
 	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
-	
 	if ($info[0]->[0] ne ""){
 	    $edit = 1;
 	} else {
 	    $edit = 0;
 	}
 	$editpw = 0;
-    } elsif ($cookies{'ID'}) {
+    } elsif ($cookies{'ID'} && $kenlie eq "0") {
+	my @cookiecounts = db::select_cookie_count($dbh,$cookies{'ID'}->value);
+	debug(time(), "cookiecount editissä:".$cookiecounts[0]->[0]);
+	debug(time(), "cookie editissä");
+	debug(time(), "cookiet:".%cookies);
+	debug(time(), "kaikki cookiet ID:".$cookies{'ID'}->value);
+	my $cookiecount = $cookiecounts[0]->[0];
 	@info = db::select_for_cookie($dbh,$cookies{'ID'}->value);
 	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);
 
-	if ($info[0]->[0] ne ""){
-	    $edit = 1;
+#	if ($kenlie eq "0") {
+	debug(time(), "redirectin cookiecount kenlie:".$kenlie);
+	if ($info[0]->[0] ne "") {
+	    if ($cookiecount > 1 && !$editcoo) {
+		debug(time(), "redirect tapahtuu");
+#		$coonames = 1;
+#		exit 0;
+		my $url = url(-relative=>1);
+		$url .= "?coonames=1";
+		print redirect(-uri=>$url,-cookie=>$cookie,-status=>303,-nph=>0);
+
+		# print header;
+		# print "löytyi useampi, kenen tietoja haluat muokata:";
+		# for (my $n=0; $n < @info; $n++) { 		
+		#     print "<form name=\"kenet\" method=\"post\">";
+		#     print $info[$n]->[0];
+		#     print "\n<br>";
+		#     print "<input type=\"hidden\" id=\"kenetname\" name=\"kenetname\" value=\"$info[$n]->[0]\">";
+		#     print itext::formend("kenet",$info[$n]->[0]);
+		#     $kenlie = 1;
+#		}
+	    }
+            $edit = 1;
+	    #}
 	} else {
             $edit = 0;
+	    $kenlie = 0;
+	    debug(time(), "edit nolla else kenlie:".$kenlie);
         }
 	$editpw = 0;
     }
 
-    print itext::otsikko();
-    print itext::mheader();
     if ($editpw) {
+	print header;
+	print itext::otsikko();
+	print itext::mheader();
 	print itext::kysypw();
-    } elsif ($edit) {
+    } elsif ($edit || $editcoo) {
+	print header;
+	print itext::otsikko();
+	print itext::mheader();
+	debug(time(), "edit kohta kenlie:".$kenlie);
+	if ($editcoo) {
+	    @info = db::select_for_id($dbh,$kenlie);
+	    @allpw = db::select_all_allerg($dbh,$info[0]->[6]);
+	}
+	$editcoo = 0;
 	if (defined($ilmolimitgroup)) {
 	    my @c = db::select_igroup_count($dbh, "1", $ilmolimitgroup);
 	    if ($c[0]->[0] >= $ilmolimit) {
@@ -389,6 +554,13 @@ if ($showall) {
 	    print itext::formpric("nameinfo", $itext::ohje2);
 	} else {
 	    print itext::formpri("nameinfo", $itext::ohje2);
+	}
+	if ($printnick) {
+	    if ($info[0]->[3] == 4) { 
+		print itext::formpric("nickinfo", $itext::ohje4);
+	    } else {
+		print itext::formpri("nickinfo", $itext::ohje4);
+	    }
 	}
 	if ($info[0]->[3] == 3) { 
 	    print itext::formpric("allinfo", $itext::ohje1);
@@ -468,10 +640,12 @@ if ($showall) {
 	}	
 
 	print "<input type=\"hidden\" id=\"ncpw\" name=\"ncpw\" value=$nocookiepw>";
+	print "<input type=\"hidden\" id=\"editid\" name=\"editid\" value=$kenlie>";
+	print "<input type=\"hidden\" id=\"npeditid\" name=\"npeditid\" value=$info[0]->[6]>";
 	print "\n<br><br>";
 	print itext::formend("submuok",$itext::change);
 	print itext::formend("poista",$itext::remove);
-    } else {
+    } elsif ($kenlie eq "0") {
 	print itext::ilmoaensin();
     }
     print itext::takaisin();
@@ -495,6 +669,7 @@ if ($showall) {
     print itext::formpria();
     print itext::formpri("noinfo", $itext::ohje3);
     print itext::formpri("nameinfo", $itext::ohje2);
+    print itext::formpri("nickinfo", $itext::ohje4) if ($printnick);
     print itext::formpri("allinfo", $itext::ohje1);
     print "<br><br>";
 
