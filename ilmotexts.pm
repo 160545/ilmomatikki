@@ -80,9 +80,9 @@ my $nocomealku = "Jos arvelet, ettet ole tulossa, paina ";
 my $hottext = "Grillin kuumotusta odottaa ";
 my $maybetext = "epävarmasti ";
 my $limitleft = "Vielä mahtuu! Tulijoita vs. tila: -";
-my $limitover = "Kas, nyt on käynyt siten, että suunniteltu nuppiluku on saavutettu/on jo ylitetty. Käytäthän harkintaa ilmoittautuess\
-asi. Tulijoita vs. tila: +";
+my $limitover = "Kas, nyt on käynyt siten, että suunniteltu nuppiluku on saavutettu/on jo ylitetty. Käytäthän harkintaa ilmoittautuessasi. Tulijoita vs. tila: +";
 my $ilmoaensin = "Ilmoittaudu ensin, sitten voit muokata tietojasi!";
+my $kenmuokata = "Koneeltasi on ilmoittautunut useampi henkilö, valitse kenen tietoja haluat muokata:";
 our @headers = ("Name","Email","Nick","Allergies","Privacy","Grill","Car","Submitted","Group");
 
 sub coalesce { 
@@ -290,6 +290,8 @@ sub limitover {
     my $c = shift;
     return "<p class=\"lim\">$limitover$c</p>"; }
 
-sub ilmoaensin { return $ilmoaensin;}
+sub ilmoaensin { return "$ilmoaensin<br>";}
+
+sub kenmuokata { return "$kenmuokata<br><br>";}
 
 return 1;

@@ -381,7 +381,8 @@ if ($coonames) {
     debug(time(), "not kenlie:".$kenlie);
 
     print header;
-    print "löytyi useampi, kenen tietoja haluat muokata:";
+    print itext::otsikko();
+    print itext::kenmuokata();
     
     for (my $n=0; $n < @info; $n++) { 		
 	$kenlie = 1;
@@ -394,6 +395,9 @@ if ($coonames) {
 	print itext::formend("kenet",$info[$n]->[0]);
 	print "</form>";
     }
+
+    print itext::takaisin();	
+
 } elsif ($showall) {
     print header;
     print itext::otsikko();
@@ -491,25 +495,11 @@ if ($coonames) {
 	if ($info[0]->[0] ne "") {
 	    if ($cookiecount > 1 && !$editcoo) {
 		debug(time(), "redirect tapahtuu");
-#		$coonames = 1;
-#		exit 0;
 		my $url = url(-relative=>1);
 		$url .= "?coonames=1";
 		print redirect(-uri=>$url,-cookie=>$cookie,-status=>303,-nph=>0);
-
-		# print header;
-		# print "löytyi useampi, kenen tietoja haluat muokata:";
-		# for (my $n=0; $n < @info; $n++) { 		
-		#     print "<form name=\"kenet\" method=\"post\">";
-		#     print $info[$n]->[0];
-		#     print "\n<br>";
-		#     print "<input type=\"hidden\" id=\"kenetname\" name=\"kenetname\" value=\"$info[$n]->[0]\">";
-		#     print itext::formend("kenet",$info[$n]->[0]);
-		#     $kenlie = 1;
-#		}
 	    }
             $edit = 1;
-	    #}
 	} else {
             $edit = 0;
 	    $kenlie = 0;
@@ -639,13 +629,15 @@ if ($coonames) {
 	    }
 	}	
 
-	print "<input type=\"hidden\" id=\"ncpw\" name=\"ncpw\" value=$nocookiepw>";
-	print "<input type=\"hidden\" id=\"editid\" name=\"editid\" value=$kenlie>";
-	print "<input type=\"hidden\" id=\"npeditid\" name=\"npeditid\" value=$info[0]->[6]>";
+	print "<input type=\"hidden\" id=\"ncpw\" name=\"ncpw\" value=\"$nocookiepw\">";
+	print "<input type=\"hidden\" id=\"editid\" name=\"editid\" value=\"$info[0]->[6]\">";
+	print "<input type=\"hidden\" id=\"npeditid\" name=\"npeditid\" value=\"$info[0]->[6]\">";
 	print "\n<br><br>";
 	print itext::formend("submuok",$itext::change);
 	print itext::formend("poista",$itext::remove);
     } elsif ($kenlie eq "0") {
+	print header;
+	print itext::otsikko();
 	print itext::ilmoaensin();
     }
     print itext::takaisin();
