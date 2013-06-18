@@ -85,6 +85,8 @@ eval {
 		print FCSV ",näytetään vain nimi";
 	    } elsif ($comers[$n]->[3] == '3') {
 		print FCSV ",näytetään nimi ja email";
+	    } elsif ($comers[$n]->[3] == '4') {
+		print FCSV ",näytetään nick";
 	    } 
 	    if ($comers[$n]->[4] == '1') {
 		print FCSV ",En ajatellut grillata";
