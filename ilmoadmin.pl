@@ -301,7 +301,7 @@ for (my $n=0; $n < @comers; $n++) {
 	} elsif ($comers[$n]->[8] == '0') {
 	    print "Ei parkkitilan tarvetta</td><td>";
 	} elsif ($comers[$n]->[8] == '2') {
-	    print "Ei komenttia parkkitilasta</td><td>";
+	    print "Ei kommenttia parkkitilasta</td><td>";
 	}
 	print "$comers[$n]->[5]</td><td>";
 	print "$comers[$n]->[9]</td></tr>\n";
