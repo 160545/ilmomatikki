@@ -282,6 +282,8 @@ for (my $n=0; $n < @comers; $n++) {
 	    print "n‰ytet‰‰n vain nimi</td><td>\n";
 	} elsif ($comers[$n]->[3] == '3') {
 	    print "n‰ytet‰‰n nimi ja email</td><td>\n";
+	} elsif ($comers[$n]->[3] == '4') {
+	    print "n‰ytet‰‰n nick</td><td>\n";
 	}
 	if ($comers[$n]->[4] == '1') {
 	    print "En ajatellut grillata</td><td>";
