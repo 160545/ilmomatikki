@@ -270,9 +270,9 @@ sub ilmosivu { return "<br><br><br><a href=\"" . url(-relative=>1) . "?tulijat=1
 
 sub muokkaa { return "<br><a href=\"".url(-relative=>1)."?mpw=1\">$muokkaa</a>";}
 
-sub takaisin { return "<br><a href=\"".url(-relative=>1)."\">$takaisin</a><br>";}
+sub takaisin { return "<br><a href=\"".url(-absolute=>1)."\">$takaisin</a><br>";}
 
-sub avecalso { return "<br>$avecalso1 <a href=\"".url(-relative=>1)."\">$avecalso2</a><br>";}
+sub avecalso { return "<br>$avecalso1 <a href=\"".url(-absolute=>1)."\">$avecalso2</a><br>";}
 
 sub charerror { return $charerror;}
 
