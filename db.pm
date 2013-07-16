@@ -240,6 +240,15 @@ sub select_count {
 		       $come);
 }
 
+sub select_car_count {
+    my $dbh = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT COUNT(car) FROM participants WHERE car=1",
+		       );
+}
+
 sub select_igroup_count {
     my $dbh = shift;
     my $come = shift;
