@@ -252,7 +252,7 @@ print "</table><br><input type=\"submit\" name=\"poista\" value=\"Poista valitut
 my @count = db::select_count($dbh, "1");
 print itext::amount(\@count);
 my @cars = db::select_car_count($dbh);
-print "Autoja tulossa noin $cars[0]->[0].";
+print "<br> Autoja tulossa noin $cars[0]->[0].";
 
 print "<h1>Epätulijat</h1>";
 print "<form name=\"adminilmo\"method=\"post\"><table border=1>\n";
