@@ -245,7 +245,7 @@ sub select_car_count {
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT COUNT(car) FROM participants WHERE car=1",
+		       "SELECT COUNT(car) FROM participants WHERE car=1 and notcoming=1",
 		       );
 }
 
