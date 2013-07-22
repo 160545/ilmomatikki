@@ -212,6 +212,8 @@ eval {
 	    
 	    if (!defined(param('privacy'))) {
 		$privacy = 2;
+	    } elsif (param('privacy') eq 'nicknameinfo') {
+		$privacy = 5;
 	    } elsif (param('privacy') eq 'nickinfo') {
 		$privacy = 4;
 	    } elsif (param('privacy') eq 'allinfo') {
@@ -413,6 +415,8 @@ if ($coonames) {
 	    print itext::namesnone();
 	} elsif ($comers[$n]->[2] == '4') {
 	    print itext::namesnick($n, \@comers);
+	} elsif ($comers[$n]->[2] == '5') {
+	    print itext::namesnickname($n, \@comers);
 	}
 	print itext::ilmottu($n, \@comers);
     }
@@ -559,6 +563,11 @@ if ($coonames) {
 	} else {
 	    print itext::formpri("allinfo", $itext::ohje1);
 	}
+	if ($info[0]->[3] == 5) { 
+	    print itext::formpric("nicknameinfo", $itext::ohje5);
+	} else {
+	    print itext::formpri("nicknameinfo", $itext::ohje5);
+	}
 
 	if ($printgrill){
 	    print itext::formi1grill1();
@@ -665,6 +674,7 @@ if ($coonames) {
     print itext::formpri("nameinfo", $itext::ohje2);
     print itext::formpri("nickinfo", $itext::ohje4) if ($printnick);
     print itext::formpri("allinfo", $itext::ohje1);
+    print itext::formpri("nicknameinfo", $itext::ohje5);
     print "<br><br>";
 
     print itext::formresttext();

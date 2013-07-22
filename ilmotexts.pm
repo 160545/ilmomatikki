@@ -41,6 +41,7 @@ our $ohje1 = "Nimi ja sähköposti";
 our $ohje2 = "Vain nimi";
 our $ohje3 = "Ei mitään";
 our $ohje4 = "Vain nick";
+our $ohje5 = "Nimi ja nick";
 my $other = "Joku muu mikä:";
 my $tulijat = "Ilmoittautuneet";
 my $muokkaa = "Muokkaa tietoja";
@@ -67,7 +68,7 @@ our $grill2 = "Saatanpa grillatakin";
 our $grill3 = "Grilli kuumaksi!";
 our $coming1 = "Tulen sittenkin!";
 our $coming2 = "Tulossa pippaloihin!";
-my $nick = "Irc nick";
+my $nick = "Nick";
 my $pw = "Koneellesi tallennetaan cookie, jonka avulla voit myöhemmin muokata tietojasi. Mikäli samasta selaimesta rekisteröityy toinenkin henkilö tai cookie jostain syystä katoaa, voit käyttää seuraavaa salasanaa tietojen muokkaamiseen:";
 my $askpw = "Salasana:";
 my $mheader = "Tietojen muokkaus";
@@ -228,6 +229,13 @@ sub namesemail {
     $email =~ s/\@/ at /g;
     return "<tr><td>$values[$n]->[0], ".$email ."</td>" if ($values[$n]->[1]);
     return "<tr><td>$values[$n]->[0]</td>" if !($values[$n]->[1]);
+}
+
+sub namesnickname {
+    my $n = shift;
+    my @values = @{shift()};
+    return "<tr><td>$values[$n]->[0], $values[$n]->[4]</td>" if ($values[$n]->[4]);
+    return "<tr><td>$values[$n]->[0]</td>" if !($values[$n]->[4]);
 }
 
 sub names {
