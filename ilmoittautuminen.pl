@@ -440,6 +440,8 @@ if ($coonames) {
 	    print itext::namesnone();
 	} elsif ($comers2[$n]->[2] == '4') {
 	    print itext::namesnick($n, \@comers2);
+	} elsif ($comers[$n]->[2] == '5') {
+	    print itext::namesnickname($n, \@comers);
 	}
 	print itext::ilmottu($n, \@comers2);
     }
