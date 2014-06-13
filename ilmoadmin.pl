@@ -87,6 +87,8 @@ eval {
 		print FCSV ",n‰ytet‰‰n nimi ja email";
 	    } elsif ($comers[$n]->[3] == '4') {
 		print FCSV ",n‰ytet‰‰n nick";
+	    } elsif ($comers[$n]->[3] == '5') {
+		print FCSV ",n‰ytet‰‰n nimi ja nick";
 	    } 
 	    if ($comers[$n]->[4] == '1') {
 		print FCSV ",En ajatellut grillata";
@@ -224,6 +226,8 @@ for (my $n=0; $n < @comers; $n++) {
 	    print "n‰ytet‰‰n nimi ja email</td><td>\n";
       	} elsif ($comers[$n]->[3] == '4') {
 	    print "n‰ytet‰‰n nick</td><td>\n";
+      	} elsif ($comers[$n]->[3] == '5') {
+	    print "n‰ytet‰‰n nimi ja nick</td><td>\n";
 	}
 	if ($comers[$n]->[4] == '1') {
 	    print "En ajatellut grillata</td><td>";
@@ -286,6 +290,8 @@ for (my $n=0; $n < @comers; $n++) {
 	    print "n‰ytet‰‰n nimi ja email</td><td>\n";
 	} elsif ($comers[$n]->[3] == '4') {
 	    print "n‰ytet‰‰n nick</td><td>\n";
+	} elsif ($comers[$n]->[3] == '5') {
+	    print "n‰ytet‰‰n nimi ja nick</td><td>\n";
 	}
 	if ($comers[$n]->[4] == '1') {
 	    print "En ajatellut grillata</td><td>";
