@@ -53,6 +53,7 @@ my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $nottulossa = "Tähän mennessä eivät ole tulossa:";
 my $done = "Ilmoittautuminen suoritettu.";
 my $edone = "Ilmoittautumista muokattu.";
+my $ack = "Email tuli siis perille. Kiitos kun kerroit!<br><br>Muistathan myös ilmoittautua!";
 my $avecalso1 = "Ilmoita myös";
 my $avecalso2 = "avec!";
 my $wasnotcoming = "Aiemmin ilmoitit ettet ole tulossa...";
@@ -107,6 +108,8 @@ sub mheader { return "<h1>$mheader</h1>";}
 sub done { return $done;}
 
 sub edone { return $edone;}
+
+sub ack { return $ack;}
 
 sub grillp {
     my @hot = @{shift()};

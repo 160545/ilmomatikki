@@ -1,4 +1,4 @@
-# Copyright manti <manti@modeemi.fi> 2009-2013
+# Copyright manti <manti@modeemi.fi> 2009-2015
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,6 +48,22 @@ sub connect_db {
     
     return DBI->connect('DBI:Pg:host='.$host.';dbname='.$db,$user) or die "Couldn't connect to database: " . DBI->errstr;
 }
+
+
+sub ack_email {
+    my $dbh = shift;
+    my $id = shift;
+    my $sth;
+    
+    $dbh->begin_work;
+    $sth = $dbh->prepare("UPDATE ack SET acktime=NOW() WHERE seed = ?")
+        or die "Couldn't prepare statement: " . $dbh->errstr;
+    $sth->execute($id);
+    $sth->finish;
+    
+    $dbh->commit;
+}
+
 
 sub insert_comers {
     my $dbh = shift;
