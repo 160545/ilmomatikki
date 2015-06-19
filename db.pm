@@ -56,7 +56,7 @@ sub ack_email {
     my $sth;
     
     $dbh->begin_work;
-    $sth = $dbh->prepare("UPDATE ack SET acktime=NOW() WHERE seed = ?")
+    $sth = $dbh->prepare("UPDATE ack SET acktime=NOW() WHERE seed = ? and acktime is null")
         or die "Couldn't prepare statement: " . $dbh->errstr;
     $sth->execute($id);
     $sth->finish;
@@ -64,6 +64,13 @@ sub ack_email {
     $dbh->commit;
 }
 
+sub select_no_ack {
+    my $dbh = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT email FROM ack WHERE acktime is null");
+}
 
 sub insert_comers {
     my $dbh = shift;

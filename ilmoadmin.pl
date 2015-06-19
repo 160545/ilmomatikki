@@ -193,6 +193,17 @@ eval {
 
 print header;
 print "<html><head><title>Ilmoittautumisen hallintasivu</title></head><body>";
+print "<h1>Email ack puuttuu:</h1>";
+
+my @noack=db::select_no_ack($dbh);
+
+for (my $a=0; $a < @noack; $a++) { 
+    print $noack[$a]->[0];
+    print "\n<br>";
+}
+
+print "<br>";
+
 print "<h1>Tulijat:</h1>";
 print "<table border=1>\n";
 print "<th></th>";
