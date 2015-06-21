@@ -30,6 +30,7 @@
 
 use strict;
 use CGI qw/:standard -debug/;
+use Encode qw(decode encode);
 use ilmotexts;
 use db;
 
@@ -198,7 +199,8 @@ print "<h1>Email ack puuttuu:</h1>";
 my @noack=db::select_no_ack($dbh);
 
 for (my $a=0; $a < @noack; $a++) { 
-    print $noack[$a]->[0];
+    my $name = Encode::decode_utf8($noack[$a]->[0]);
+    print escapeHTML($name);
     print "\n<br>";
 }
 
