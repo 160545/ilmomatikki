@@ -172,6 +172,16 @@ eval {
 	}
     }
 
+    if (param('adack')) {
+	my @values;
+	my @value = grep {/^[0-9A-Za-z]+$/} param();
+
+	foreach my $item (@value) {
+#	for (my $n=0; $n < @values; $n++) {
+	    db::admin_ack_email($dbh, $item);
+	}
+    }
+
 };
 
  if ($@) {
@@ -198,11 +208,20 @@ print "<h1>Email ack puuttuu:</h1>";
 
 my @noack=db::select_no_ack($dbh);
 
+#print "<table border=1>\n";
+print "<table>\n";
+print "<th></th>";
+print "<form name=\"adminack\" method=\"post\">";
+
 for (my $a=0; $a < @noack; $a++) { 
-    my $name = Encode::decode_utf8($noack[$a]->[0]);
-    print escapeHTML($name);
-    print "\n<br>";
+    my $name2 = Encode::decode_utf8($noack[$a]->[0]);
+    my $name = escapeHTML($name2);
+    print "<tr><td><input type=\"checkbox\" id=\"$noack[$a]->[1]\" name=\"$noack[$a]->[1]\"></td>";
+    print "<td>$name</td><td></tr>\n";
+
 }
+
+print "</table><br><input type=\"submit\" name=\"adack\" value=\"Ack\"></form>\n";
 
 print "<br>";
 
