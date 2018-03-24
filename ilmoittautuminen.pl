@@ -33,6 +33,7 @@ use strict;
 use CGI qw/:standard -debug/;
 use CGI::Cookie;
 use Digest::MD5 qw(md5_hex);
+use lib ".";
 use ilmotexts;
 use db;
 

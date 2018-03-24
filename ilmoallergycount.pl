@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright manti <manti@modeemi.fi> 2011
+# Copyright manti <manti@modeemi.fi> 2011-2018
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,6 +30,7 @@
 
 use strict;
 use CGI qw/:standard -debug/;
+use lib "."; 
 use ilmotexts;
 use db;
 
