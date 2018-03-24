@@ -1,4 +1,4 @@
-# Copyright manti <manti@modeemi.fi> 2009-2015
+# Copyright manti <manti@modeemi.fi> 2009-2018
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,21 +31,50 @@ use strict;
 use CGI qw/:standard/;
 use DBI;
 
+my $configfile = "config";
+
+my $debuglog;
+my $host;
+my $user;
+my $db;
+
+my $printdebug=0;
+
+#read DB connection details from config file
+if (open(F, "<", $configfile)) {
+    my @temparr;
+    my $line;
+    while ($line = <F>) {
+	chomp $line;
+	if ($line =~ /^dbhost/) {
+	    @temparr = split(/\= */,$line);
+	    $host = $temparr[1];
+	} elsif ($line =~ /^dbuser/) {
+	    @temparr = split(/\= */,$line);
+	    $user = $temparr[1];
+	} elsif ($line =~ /^database/) {
+	    @temparr = split(/\= */,$line);
+	    $db = $temparr[1];
+	} elsif ($line =~ /^debuglog/) {
+	    @temparr = split(/\= */,$line);
+	    $debuglog = $temparr[1];
+	}
+    }
+}
+close (F);
+	
+
 sub debug {
     my $msg = shift;
-    open(F, ">>", "/home/manti/public_html/ilmodev/ilmodebug.log");
-    print F "$$ $msg\n";
-    close(F);
+    if ($printdebug) {
+	open(F, ">>", $debuglog);
+	print F "$$ $msg\n";
+	close(F);
+    }
 }
 
 #global database handler, slow to create & disconnect all the time, done only once
 sub connect_db {
-    
-    # variables for DB
-    my $host = "modeemi";
-    my $db = "ilmo";
-    my $user = "manti";
-    
     return DBI->connect('DBI:Pg:host='.$host.';dbname='.$db,$user) or die "Couldn't connect to database: " . DBI->errstr;
 }
 
@@ -228,18 +257,20 @@ sub delete_user {
     debug("sql1:".$sth2);
     debug($sth2->{Statement});
     debug($dbh->{Statement});
+
     $sth2->execute($pworcoo, $id);
     $sth2->finish;
 
     debug($sth2->{Statement});
     debug($dbh->{Statement});    
-
+	
     $sth = $dbh->prepare("DELETE from participants WHERE $column = ? AND id = ?")
  	or die "Couldn't prepare statement: " . $dbh->errstr;
     $sth->execute($pworcoo, $id);
     my $scalar = '';
     open( my $fh, "+>:scalar", \$scalar );
     $dbh->trace( 2, $fh );
+
     debug($scalar);
     debug($sth->{Statement});
     debug($dbh->{Statement});

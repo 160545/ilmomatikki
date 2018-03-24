@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright manti <manti@modeemi.fi> 2009-2013
+# Copyright manti <manti@modeemi.fi> 2009-2018
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,6 +52,8 @@ my $coonames = url_param('coonames');
 
 my $configfile = "config";
 
+my $printdebug=0;
+
 # If limit is over, ilmo is still possible but notice is shown
 # Group 1 is limited (Vincit people), 0 for basic, no limit
 my $ilmolimit = $ENV{ILMOLIMIT};
@@ -67,6 +69,8 @@ my $nocookie = 0;
 my $none = 0;
 my $nocookiepw = "";
 my $cookieexpire;
+my $log;
+my $debuglog;
 my @allergies;
 my @info;
 my @allpw;
@@ -82,24 +86,6 @@ sub random_string() {
     return $str; 
 }
 
-sub logging {
-    my $time = shift;
-    my $msg = shift;
-    open(F, ">>", "/home/manti/public_html/ilmodev/ilmo.log");
-#    open(F, ">>", "/home/manti/public_html/ilmo/ilmo.log");
-    print F "$time $msg\n";
-    close(F);
-}
-
-sub debug {
-    my $time = shift;
-    my $msg = shift;
-    open(F, ">>", "/home/manti/public_html/ilmodev/idebug.log");
-#    open(F, ">>", "/home/manti/public_html/ilmo/ilmo.log");
-    print F "$time $msg\n";
-    close(F);
-}
-
 #read allergies and all other stuff from config file:
 if (open(F, "<", $configfile)) {
     my @temparr;
@@ -109,6 +95,12 @@ if (open(F, "<", $configfile)) {
 	if ($line =~ /^allergies/) {
 	    @temparr = split(/\= */,$line);
 	    @allergies = split(/,/,$temparr[1]);
+	} elsif ($line =~ /^log/) {
+	    @temparr = split(/\= */,$line);
+	    $log = $temparr[1];
+	} elsif ($line =~ /^debuglog/) {
+	    @temparr = split(/\= */,$line);
+	    $debuglog = $temparr[1];
 	} elsif ($line =~ /^nick/) {
 	    @temparr = split(/\= */,$line);
 	    $printnick = $temparr[1];
@@ -134,6 +126,25 @@ if (open(F, "<", $configfile)) {
     }
 }
 close (F);
+
+sub logging {
+    my $time = shift;
+    my $msg = shift;
+    open(F, ">>", $log);
+    print F "$time $msg\n";
+    close(F);
+}
+
+sub debug {
+    my $time = shift;
+    my $msg = shift;
+    if ($printdebug) {
+	open(F, ">>", $debuglog);
+	print F "$time $msg\n";
+	close(F);
+    }
+}
+
 
 # virhek‰sittely tehd‰‰n eval-lohkon p‰‰tteeksi (diell‰ ilmoitetaan virheet)
 eval {

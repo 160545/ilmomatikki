@@ -1,4 +1,14 @@
 #config file for ilmo form
+#code assumes this file name is config
+
+#log file to be used
+log = <log file>
+debuglog = <debuglog file>
+
+#DB information for connection
+dbhost = <host>
+dbuser = <user>
+database = <db name>
 
 #is the nick-field printed to form (1) or not (0)
 nick = 1
@@ -7,7 +17,7 @@ nick = 1
 grill = 1
 
 #are allergies printed to form (1) or not (0)
-praller = 0
+praller = 1
 
 #List of allergies printed to form (format has to be followed):
 allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luontaisesti gluteeniton,Maidoton,Mauton,Pähkinätön,Rasvaton,Soijalesitiinitön,Soijaton,Suolaton,Vähälaktoosinen
