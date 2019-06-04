@@ -28,41 +28,42 @@
 package itext;
 
 use strict;
-use CGI qw/:standard/;
+use utf8::all;
+use CGI qw/:standard -utf8/;
 
 my $title = "Pippalot!";
-my $header = "Ilmoittaudu Marjan ja Erkin kes‰pippaloihin!";
+my $header = "Ilmoittaudu Marjan ja Erkin kes√§pippaloihin!";
 my $name = "Etu- ja sukunimi:";
-my $email = "S‰hkˆposti:";
+my $email = "S√§hk√∂posti:";
 my $allerg = "Rastita:";
 our $ilmotext = "Ilmoittaudu!";
-my $ohje = "Minusta saa n‰ky‰ ilmoittautuneet-sivulla:";
-our $ohje1 = "Nimi ja s‰hkˆposti";
+my $ohje = "Minusta saa n√§ky√§ ilmoittautuneet-sivulla:";
+our $ohje1 = "Nimi ja s√§hk√∂posti";
 our $ohje2 = "Vain nimi";
-our $ohje3 = "Ei mit‰‰n";
+our $ohje3 = "Ei mit√§√§n";
 our $ohje4 = "Vain nick";
 our $ohje5 = "Nimi ja nick";
-my $other = "Joku muu mik‰:";
+my $other = "Joku muu mik√§:";
 my $tulijat = "Ilmoittautuneet";
 my $muokkaa = "Muokkaa tietoja";
-my $charerror = "Voivoi, syˆtit ep‰kelvon merkin - Yrit‰ uudelleen.";
-my $nameerror = "Nimi ja salasana on pakollinen - Yrit‰ uudelleen.";
-my $pwcheckerror = "Nimell‰ ja salasanalla ei lˆydy tietoja, tarkista antamasi nimi ja salasana.";
-my $limiterror = "Valitettavasti tapahtuma on jo t‰ynn‰.";
-my $tulossa = "T‰h‰n menness‰ ilmoittautuneet:";
-my $nottulossa = "T‰h‰n menness‰ eiv‰t ole tulossa:";
+my $charerror = "Voivoi, sy√∂tit ep√§kelvon merkin - Yrit√§ uudelleen.";
+my $nameerror = "Nimi ja salasana on pakollinen - Yrit√§ uudelleen.";
+my $pwcheckerror = "Nimell√§ ja salasanalla ei l√∂ydy tietoja, tarkista antamasi nimi ja salasana.";
+my $limiterror = "Valitettavasti tapahtuma on jo t√§ynn√§.";
+my $tulossa = "T√§h√§n menness√§ ilmoittautuneet:";
+my $nottulossa = "T√§h√§n menness√§ eiv√§t ole tulossa:";
 my $done = "Ilmoittautuminen suoritettu.";
 my $edone = "Ilmoittautumista muokattu.";
-my $ack = "Email tuli siis perille. Kiitos kun kerroit!<br><br>Muistathan myˆs ilmoittautua!";
-my $avecalso1 = "Ilmoita myˆs";
+my $ack = "Email tuli siis perille. Kiitos kun kerroit!<br><br>Muistathan my√∂s ilmoittautua!";
+my $avecalso1 = "Ilmoita my√∂s";
 my $avecalso2 = "avec!";
 my $wasnotcoming = "Aiemmin ilmoitit ettet ole tulossa...";
 my $takaisin = "Takaisin";
 my $grill = "Grillausta?";
-my $rest = "Mik‰li et ole tulossa, voit hyp‰t‰ suoraan lomakkeen loppuun";
+my $rest = "Mik√§li et ole tulossa, voit hyp√§t√§ suoraan lomakkeen loppuun";
 #my $rest2 = "(tai jos haluat salasanallisen korjausoption):";
 my $car = "Tarvitsen parkkitilaa";
-our $yescar = "Kyll‰!";
+our $yescar = "Kyll√§!";
 our $nocar = "Taksi/julkiset/liikunta on pop";
 our $grill1 = "En ajatellut grillata";
 our $grill2 = "Saatanpa grillatakin";
@@ -70,21 +71,21 @@ our $grill3 = "Grilli kuumaksi!";
 our $coming1 = "Tulen sittenkin!";
 our $coming2 = "Tulossa pippaloihin!";
 my $nick = "Nick";
-my $pw = "Koneellesi tallennetaan cookie, jonka avulla voit myˆhemmin muokata tietojasi. Mik‰li samasta selaimesta rekisterˆityy toinenkin henkilˆ tai cookie jostain syyst‰ katoaa, voit k‰ytt‰‰ seuraavaa salasanaa tietojen muokkaamiseen:";
+my $pw = "Koneellesi tallennetaan cookie, jonka avulla voit my√∂hemmin muokata tietojasi. Mik√§li samasta selaimesta rekister√∂ityy toinenkin henkil√∂ tai cookie jostain syyst√§ katoaa, voit k√§ytt√§√§ seuraavaa salasanaa tietojen muokkaamiseen:";
 my $askpw = "Salasana:";
 my $mheader = "Tietojen muokkaus";
-my $showinfo = "N‰yt‰ tiedot";
+my $showinfo = "N√§yt√§ tiedot";
 our $change = "Muuta tietoja";
 our $nocome = "En ole tulossa";
 our $remove = "Poista ilmoittautuminen";
 my $anon = "Anonyymi";
 my $nocomealku = "Jos arvelet, ettet ole tulossa, paina ";
 my $hottext = "Grillin kuumotusta odottaa ";
-my $maybetext = "ep‰varmasti ";
-my $limitleft = "Viel‰ mahtuu! Tulijoita vs. tila: ";
-my $limitover = "Kas, nyt on k‰ynyt siten, ett‰ suunniteltu nuppiluku on saavutettu/on jo ylitetty. K‰yt‰th‰n harkintaa ilmoittautuessasi. Tulijoita vs. tila: +";
+my $maybetext = "ep√§varmasti ";
+my $limitleft = "Viel√§ mahtuu! Tulijoita vs. tila: ";
+my $limitover = "Kas, nyt on k√§ynyt siten, ett√§ suunniteltu nuppiluku on saavutettu/on jo ylitetty. K√§yt√§th√§n harkintaa ilmoittautuessasi. Tulijoita vs. tila: +";
 my $ilmoaensin = "Ilmoittaudu ensin, sitten voit muokata tietojasi!";
-my $kenmuokata = "Koneeltasi on ilmoittautunut useampi henkilˆ, valitse kenen tietoja haluat muokata:";
+my $kenmuokata = "Koneeltasi on ilmoittautunut useampi henkil√∂, valitse kenen tietoja haluat muokata:";
 our @headers = ("Name","Email","Nick","Allergies","Privacy","Grill","Car","Submitted","Group");
 
 sub coalesce { 
@@ -95,7 +96,7 @@ sub coalesce {
     return $value; 
 }
 
-sub otsikko { return "<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
+sub otsikko { return "<!DOCTYPE html>\n<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
 sub headeri { return "<h1>$header</h1>";}
 
@@ -118,7 +119,7 @@ sub grillp {
 }
 
 sub kysypw {
-    return "<form name=\"askpw\" method=\"post\"> \
+    return "<form name=\"askpw\" method=\"post\" enctype=\"multipart/form-data\"> \
 $name<input type=\"text\" name=\"apwname\" size=30><br>\n
 $askpw<input type=\"password\" name=\"apw\" size=30><br>\n
 <br><input type=\"submit\" name=\"subpw\" value=\"$showinfo\">\n";}
@@ -127,7 +128,7 @@ sub formi1alku {
     my $formname = shift;
     my @info = @{shift() || []};
     @info = coalesce(@info, ["", ""]);
-    return "<form name=\"$formname\" method=\"post\"> \
+    return "<form name=\"$formname\" method=\"post\" enctype=\"multipart/form-data\"> \
 $name<input type=\"text\" name=\"name\" size=30 value=\"$info[0]->[0]\"><br>\n \
 $email<input type=\"text\" name=\"email\" size=30 value=\"$info[0]->[1]\"><br>\n";}
 

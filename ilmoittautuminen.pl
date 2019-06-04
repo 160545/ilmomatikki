@@ -30,7 +30,8 @@
 
 
 use strict;
-use CGI qw/:standard -debug/;
+use utf8::all;
+use CGI qw/:standard -debug -utf8/;
 use CGI::Cookie;
 use Digest::MD5 qw(md5_hex);
 use lib ".";
@@ -146,7 +147,7 @@ sub debug {
 }
 
 
-# virhekäsittely tehdään eval-lohkon päätteeksi (diellä ilmoitetaan virheet)
+# virhekÃ¤sittely tehdÃ¤Ã¤n eval-lohkon pÃ¤Ã¤tteeksi (siellÃ¤ ilmoitetaan virheet)
 eval {
     if (request_method() eq "POST") {
 	if (param('poista') && param('name')) {
@@ -189,7 +190,7 @@ eval {
 		debug(time(), "kenetname editcoo:".$editcoo);
 	    }
 	} elsif (param('subpw') && param('apw') && param('apwname')) {
-	    my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(param('apw'))));
+	    my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(scalar param('apw'))));
 	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire,-path=>'url(-absolute=>1)');
 	    
 	    if (!$rand[0]->[0]) {
@@ -200,10 +201,10 @@ eval {
 	    $editpw = 0;
 	    $coonames = 0;
 	    $nocookie = 1;
-	    $nocookiepw = md5_hex(escapeHTML(param('apw')));
+	    $nocookiepw = md5_hex(escapeHTML(scalar param('apw')));
 	} elsif ((param('ilmoa') || param('submuok') || param('notcoming')) && param('name')) {
 
-	    die "merkki" if !(param('name') =~ /^[a-zA-Z.åöäÅÖÄ, -]*?$/);
+	    die "merkki" if !(param('name') =~ /^[a-zA-Z.Ã¥Ã¶Ã¤Ã…Ã–Ã„, -]*?$/);
 	    
 	    my @allergyvalues;
 	    my $privacy;
@@ -267,7 +268,7 @@ eval {
 	    }
 	    
 	    if ($printnick) {
-		$nick = escapeHTML(param('nick'));
+		$nick = escapeHTML(scalar param('nick'));
 	    } else {
 		$nick = "undef";
 	    }
@@ -286,7 +287,7 @@ eval {
 	    }
 	    
 	    if (param('addinfo')) {
-		push(@allergyvalues, escapeHTML(param('addinfo')));
+		push(@allergyvalues, escapeHTML(scalar param('addinfo')));
 	    }
 	    
 	    if (param('ilmoa')) {
@@ -294,12 +295,12 @@ eval {
 		$none="1";
 		my %cookies = fetch CGI::Cookie;
 		if ($cookies{'ID'} && db::select_cookie_exists($dbh, $cookies{'ID'}->value)) {
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
 		    logging(time(), param('name')." ilmoittautui.");
 		} else {
 		    my $rand = random_string();
 		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $rand, $none);
 		    logging(time(), param('name')." ilmoittautui.");
 		}
 		$done = 1;
@@ -307,10 +308,10 @@ eval {
 		my %cookies = fetch CGI::Cookie;
 		if (param('ncpw')) {
 		    debug(time(),"ncpw db update npeditid:".param('npeditid'));
-		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'),param('npeditid'));
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'),param('npeditid'));
 		}
 		if ($cookies{'ID'} && param('editid')) {
-		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef, param('editid'));
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef, scalar(param('editid')));
 		}
 		logging(time(), param('name')." muokkasi ilmoittautumistaan.");
 		$editdone = 1;
@@ -318,12 +319,12 @@ eval {
 #1= coming, 0=notcoming
 		my %cookies = fetch CGI::Cookie;
 		if ($cookies{'ID'} && db::select_cookie_exists($dbh, $cookies{'ID'}->value)) {
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
 		} else {
 		    $none = "0";
 		    my $rand = random_string();
 		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(param('name')), escapeHTML(param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $rand, $none);
 		}
 		logging(time(), param('name')." ilmoitti ettei tule.");
 		$done = 1;
@@ -349,7 +350,7 @@ if ($@) {
 	$message = $@;
     }
 
-    print header;
+    print header("text/html;charset=UTF-8");
     print itext::otsikko();
     print"$message";
     print itext::endtags();
@@ -394,7 +395,7 @@ if ($coonames) {
 
     debug(time(), "not kenlie:".$kenlie);
 
-    print header;
+    print header("text/html;charset=UTF-8");
     print itext::otsikko();
     print itext::kenmuokata();
     
@@ -413,7 +414,7 @@ if ($coonames) {
     print itext::takaisin();	
 
 } elsif ($showall) {
-    print header;
+    print header("text/html;charset=UTF-8");
     print itext::otsikko();
     print itext::tulossa();
     print itext::starttable();
@@ -462,7 +463,7 @@ if ($coonames) {
     print itext::takaisin();
     print itext::endtags();
 } elsif ($ok) {
-    print header;
+    print header("text/html;charset=UTF-8");
     print itext::otsikko();
     print itext::done();
     print itext::avecalso();
@@ -471,7 +472,7 @@ if ($coonames) {
     print itext::takaisin();
     print itext::endtags();
 } elsif ($eok) {
-    print header;
+    print header("text/html;charset=UTF-8");
     print itext::otsikko();
     print itext::edone();
     print itext::ilmosivu();
@@ -486,7 +487,7 @@ if ($coonames) {
 	debug(time(), "nocookie apwname:".param('apwname'));
 	debug(time(), "nocookie nocoopw:".$nocookiepw);
 	if (!$cookies{'ID'}) {
-	    my @cookie = db::select_cookie($dbh, escapeHTML(param('apwname')),$nocookiepw);
+	    my @cookie = db::select_cookie($dbh, escapeHTML(scalar param('apwname')),$nocookiepw);
 	    debug(time(), "nocookie cookie:".$cookie[0]->[0]);
 	    @info = db::select_for_pw($dbh, $nocookiepw, $cookie[0]->[0]);
 	} else {
@@ -502,8 +503,8 @@ if ($coonames) {
 	$editpw = 0;
     } elsif ($cookies{'ID'} && $kenlie eq "0") {
 	my @cookiecounts = db::select_cookie_count($dbh,$cookies{'ID'}->value);
-	debug(time(), "cookiecount editissä:".$cookiecounts[0]->[0]);
-	debug(time(), "cookie editissä");
+	debug(time(), "cookiecount editissÃ¤:".$cookiecounts[0]->[0]);
+	debug(time(), "cookie editissÃ¤");
 	debug(time(), "cookiet:".%cookies);
 	debug(time(), "kaikki cookiet ID:".$cookies{'ID'}->value);
 	my $cookiecount = $cookiecounts[0]->[0];
@@ -529,12 +530,12 @@ if ($coonames) {
     }
 
     if ($editpw) {
-	print header;
+	print header("text/html;charset=UTF-8");
 	print itext::otsikko();
 	print itext::mheader();
 	print itext::kysypw();
     } elsif ($edit || $editcoo) {
-	print header;
+	print header("text/html;charset=UTF-8");
 	print itext::otsikko();
 	print itext::mheader();
 	debug(time(), "edit kohta kenlie:".$kenlie);
@@ -661,14 +662,14 @@ if ($coonames) {
 	print itext::formend("submuok",$itext::change);
 	print itext::formend("poista",$itext::remove);
     } elsif ($kenlie eq "0") {
-	print header;
+	print header("text/html;charset=UTF-8");
 	print itext::otsikko();
 	print itext::ilmoaensin();
     }
     print itext::takaisin();
     print itext::endtags();
 }  else {   
-    print header;
+    print header("text/html;charset=UTF-8");
     print itext::otsikko();
     print itext::headeri();
 

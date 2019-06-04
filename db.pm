@@ -28,7 +28,8 @@
 package db;
 
 use strict;
-use CGI qw/:standard/;
+use utf8::all;
+use CGI qw/:standard -utf8/;
 use DBI;
 
 my $configfile = "config";
@@ -75,9 +76,8 @@ sub debug {
 
 #global database handler, slow to create & disconnect all the time, done only once
 sub connect_db {
-    return DBI->connect('DBI:Pg:host='.$host.';dbname='.$db,$user) or die "Couldn't connect to database: " . DBI->errstr;
+    return (DBI->connect('DBI:Pg:host='.$host.';dbname='.$db,$user) or die "Couldn't connect to database: " . DBI->errstr);
 }
-
 
 sub ack_email {
     my $dbh = shift;
@@ -174,7 +174,7 @@ sub update_comers {
     my $sth3;
     my $column;
     my $pworcoo;
-    
+
     if ($nick eq 'undef') {
 	$nick = '';
     }
@@ -186,7 +186,7 @@ sub update_comers {
 	$column="passwd";
 	$pworcoo=$pw;
     }
-    
+
     $dbh->begin_work;
     $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, limitgroup=?, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=? AND id = ?")
         or die "Couldn't prepare statement: " . $dbh->errstr;
@@ -196,7 +196,7 @@ sub update_comers {
     $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=? and id = ?)")
 	or die "Couldn't prepare statement: " . $dbh->errstr;
     $sth2->execute($pworcoo, $id);
-    $sth2->finish;    
+    $sth2->finish;
     
     if (@values) {
 	foreach my $item (@values) {
@@ -206,6 +206,12 @@ sub update_comers {
 	    $sth3->finish;
 	}
     }
+
+
+
+    
+
+
     $dbh->commit;
 }
 

@@ -1,4 +1,4 @@
-CREATE DATABASE ilmo_template encoding 'SQL_ASCII' template template0;
+CREATE DATABASE ilmo_template encoding 'UTF8' template template0;
 
 \c ilmo_template
 

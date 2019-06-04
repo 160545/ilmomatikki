@@ -29,7 +29,8 @@
 
 
 use strict;
-use CGI qw/:standard -debug/;
+use utf8::all;
+use CGI qw/:standard -debug -utf8/;
 use lib "."; 
 use ilmotexts;
 use db;
@@ -54,11 +55,11 @@ if (open(F, "<", $configfile)) {
 close (F);
 
 
-# virhekäsittely tehdään eval-lohkon päätteeksi (diellä ilmoitetaan virheet)
+# virhekÃ¤sittely tehdÃ¤Ã¤n eval-lohkon pÃ¤Ã¤tteeksi (diellÃ¤ ilmoitetaan virheet)
 #eval {
 #};
 
-print header;
+print header("text/html;charset=UTF-8");
 #print itext::otsikko();
 
 print "<h1>Allergiayhteenveto</h1>";

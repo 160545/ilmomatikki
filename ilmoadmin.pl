@@ -29,7 +29,8 @@
 
 
 use strict;
-use CGI qw/:standard -debug/;
+use utf8::all;
+use CGI qw/:standard -debug -utf8/;
 use Encode qw(decode encode);
 use lib ".";
 use ilmotexts;
@@ -57,7 +58,7 @@ if (open(F, "<", $configfile)) {
 }
 close (F);
 
-# virhek‰sittely tehd‰‰n eval-lohkon p‰‰tteeksi (diell‰ ilmoitetaan virheet)
+# virhek√§sittely tehd√§√§n eval-lohkon p√§√§tteeksi (diell√§ ilmoitetaan virheet)
 eval {
     if (param('export')) {
 	my $csvfile = "ilmo.csv";
@@ -82,15 +83,15 @@ eval {
 	    print FCSV ",".$comers[$n]->[2];
 
 	    if ($comers[$n]->[3] == '1') {
-		print FCSV ",ei n‰ytet‰ mit‰‰n";
+		print FCSV ",ei n√§ytet√§ mit√§√§n";
 	    } elsif ($comers[$n]->[3] == '2') {
-		print FCSV ",n‰ytet‰‰n vain nimi";
+		print FCSV ",n√§ytet√§√§n vain nimi";
 	    } elsif ($comers[$n]->[3] == '3') {
-		print FCSV ",n‰ytet‰‰n nimi ja email";
+		print FCSV ",n√§ytet√§√§n nimi ja email";
 	    } elsif ($comers[$n]->[3] == '4') {
-		print FCSV ",n‰ytet‰‰n nick";
+		print FCSV ",n√§ytet√§√§n nick";
 	    } elsif ($comers[$n]->[3] == '5') {
-		print FCSV ",n‰ytet‰‰n nimi ja nick";
+		print FCSV ",n√§ytet√§√§n nimi ja nick";
 	    } 
 	    if ($comers[$n]->[4] == '1') {
 		print FCSV ",En ajatellut grillata";
@@ -99,7 +100,7 @@ eval {
 	    } elsif ($comers[$n]->[4] == '3') {
 		print FCSV ",Grilli kuumaksi";
 	    } elsif ($comers[$n]->[4] == '4') {
-		print FCSV ",Ei mielipidett‰ grillaukseen";
+		print FCSV ",Ei mielipidett√§ grillaukseen";
 	    } elsif ($comers[$n]->[4] == '0') {
 		print ",";
 	    } 
@@ -196,14 +197,14 @@ eval {
 	 $message = $@;
      }
 
-     print header;
+     print header("text/html;charset=UTF-8");
      print itext::otsikko();
      print"$message";
      print itext::endtags();
      exit 0;
 }
 
-print header;
+print header("text/html;charset=UTF-8");
 print "<html><head><title>Ilmoittautumisen hallintasivu</title></head><body>";
 print "<h1>Email ack puuttuu:</h1>";
 
@@ -252,15 +253,15 @@ for (my $n=0; $n < @comers; $n++) {
 	print "</td><td>";
 	
 	if ($comers[$n]->[3] == '1') {
-	    print "ei n‰ytet‰ mit‰‰n</td><td>\n";
+	    print "ei n√§ytet√§ mit√§√§n</td><td>\n";
 	} elsif ($comers[$n]->[3] == '2') {
-	    print "n‰ytet‰‰n vain nimi</td><td>\n";
+	    print "n√§ytet√§√§n vain nimi</td><td>\n";
 	} elsif ($comers[$n]->[3] == '3') {
-	    print "n‰ytet‰‰n nimi ja email</td><td>\n";
+	    print "n√§ytet√§√§n nimi ja email</td><td>\n";
       	} elsif ($comers[$n]->[3] == '4') {
-	    print "n‰ytet‰‰n nick</td><td>\n";
+	    print "n√§ytet√§√§n nick</td><td>\n";
       	} elsif ($comers[$n]->[3] == '5') {
-	    print "n‰ytet‰‰n nimi ja nick</td><td>\n";
+	    print "n√§ytet√§√§n nimi ja nick</td><td>\n";
 	}
 	if ($comers[$n]->[4] == '1') {
 	    print "En ajatellut grillata</td><td>";
@@ -269,7 +270,7 @@ for (my $n=0; $n < @comers; $n++) {
 	} elsif ($comers[$n]->[4] == '3') {
 	    print "Grilli kuumaksi</td><td>";
 	} elsif ($comers[$n]->[4] == '4') {
-	    print "Ei mielipidett‰ grillaukseen</td><td>";
+	    print "Ei mielipidett√§ grillaukseen</td><td>";
 	} elsif ($comers[$n]->[4] == '0') {
 	    print "</td><td>";
 	}
@@ -291,7 +292,7 @@ print itext::amount(\@count);
 my @cars = db::select_car_count($dbh);
 print "<br> Autoja tulossa noin $cars[0]->[0].";
 
-print "<h1>Ep‰tulijat</h1>";
+print "<h1>Ep√§tulijat</h1>";
 print "<form name=\"adminilmo\"method=\"post\"><table border=1>\n";
 print "<th></th>";
 
@@ -316,15 +317,15 @@ for (my $n=0; $n < @comers; $n++) {
 	print "</td><td>";
 	
 	if ($comers[$n]->[3] == '1') {
-	    print "ei n‰ytet‰ mit‰‰n</td><td>\n";
+	    print "ei n√§ytet√§ mit√§√§n</td><td>\n";
 	} elsif ($comers[$n]->[3] == '2') {
-	    print "n‰ytet‰‰n vain nimi</td><td>\n";
+	    print "n√§ytet√§√§n vain nimi</td><td>\n";
 	} elsif ($comers[$n]->[3] == '3') {
-	    print "n‰ytet‰‰n nimi ja email</td><td>\n";
+	    print "n√§ytet√§√§n nimi ja email</td><td>\n";
 	} elsif ($comers[$n]->[3] == '4') {
-	    print "n‰ytet‰‰n nick</td><td>\n";
+	    print "n√§ytet√§√§n nick</td><td>\n";
 	} elsif ($comers[$n]->[3] == '5') {
-	    print "n‰ytet‰‰n nimi ja nick</td><td>\n";
+	    print "n√§ytet√§√§n nimi ja nick</td><td>\n";
 	}
 	if ($comers[$n]->[4] == '1') {
 	    print "En ajatellut grillata</td><td>";
@@ -333,7 +334,7 @@ for (my $n=0; $n < @comers; $n++) {
 	} elsif ($comers[$n]->[4] == '3') {
 	    print "Grilli kuumaksi</td><td>";
 	} elsif ($comers[$n]->[4] == '4') {
-	    print "Ei mielipidett‰ grillaukseen</td><td>";
+	    print "Ei mielipidett√§ grillaukseen</td><td>";
 	} elsif ($comers[$n]->[4] == '0') {
 	    print "</td><td>";
 	}

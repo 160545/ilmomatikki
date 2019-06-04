@@ -29,13 +29,15 @@
 
 
 use strict;
-use CGI qw/:standard -debug/;
+use CGI qw/:standard -debug -utf8/;
+use utf8::all;
+use lib ".";
 use ilmotexts;
 use db;
 
 my $dbh=db::connect_db();
 
-print header;
+print header("text/html;charset=UTF-8");
 print itext::otsikko();
 
 if (defined(param('seed'))) {
