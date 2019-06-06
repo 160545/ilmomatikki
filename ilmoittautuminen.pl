@@ -33,7 +33,7 @@ use strict;
 use utf8::all;
 use CGI qw/:standard -debug -utf8/;
 use CGI::Cookie;
-use Digest::MD5 qw(md5_hex);
+use Crypt::PBKDF2;
 use lib ".";
 use ilmotexts;
 use db;
@@ -76,6 +76,15 @@ my @allergies;
 my @info;
 my @allpw;
 my $cookie;
+
+#Password encryption
+my $pbkdf2 = Crypt::PBKDF2->new(
+    hash_class => 'HMACSHA2',
+    hash_args => {
+	sha_size => 512,
+    },
+    salt_len => 10,
+    );
 
 #random string for cookie
 sub random_string() { 
@@ -154,7 +163,7 @@ eval {
 	    my %cookies = fetch CGI::Cookie;
 	    if (param('ncpw')) {
 		debug(time(), "pw poisto");
-		db::delete_user($dbh,param('ncpw'),undef,param('npeditid'));
+		db::delete_user($dbh,param('ncpw'),undef,scalar param('npeditid'));
 	    }
 	    if ($cookies{'ID'} && param('editid')) {
 		debug(time(), "cookie poisto");
@@ -167,8 +176,9 @@ eval {
 	    $kenlie = param('kenetid');
 	    my @info = db::select_for_id($dbh, $kenlie);
 	    debug(time(), "kenetname if 0->5:".$info[0]->[5]);
-	    debug(time(), "kenetname if md5_hex:".md5_hex(''));
-	    if ($info[0]->[5] ne md5_hex('')) {
+	    debug(time(), "kenetname if pbkdf2:".$pbkdf2->generate(''));
+	    #	    if ($info[0]->[5] ne $pbkdf2->validate('')) {
+	    if ($info[0]->[5] ne '') {
 		$edit = 0;
 		$editcoo = 0;
 		$editpw = 1;
@@ -190,18 +200,26 @@ eval {
 		debug(time(), "kenetname editcoo:".$editcoo);
 	    }
 	} elsif (param('subpw') && param('apw') && param('apwname')) {
-	    my @rand = db::select_cookie($dbh, param('apwname'), md5_hex(escapeHTML(scalar param('apw'))));
-	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand[0]->[0],-expires=>$cookieexpire,-path=>'url(-absolute=>1)');
-	    
-	    if (!$rand[0]->[0]) {
-		die "pwcheck";
+	    my $rand;
+	    my @cookieandpw = db::select_cookie($dbh, escapeHTML(scalar param('apwname')));
+	    for (my $n=0; $n < @cookieandpw; $n++) {
+		if ($pbkdf2->validate($cookieandpw[$n]->[1], escapeHTML(scalar param('apw')))) {
+		    $rand = $cookieandpw[$n]->[0];
+		} else {
+		    die "pwcheck";
+		}
 	    }
+	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');
+	    
+#	    if (!$rand[0]->[0]) {
+#		die "pwcheck";
+#	    }
 
 	    $edit = 1;
 	    $editpw = 0;
 	    $coonames = 0;
 	    $nocookie = 1;
-	    $nocookiepw = md5_hex(escapeHTML(scalar param('apw')));
+	    $nocookiepw = escapeHTML(scalar param('apw'));
 	} elsif ((param('ilmoa') || param('submuok') || param('notcoming')) && param('name')) {
 
 	    die "merkki" if !(param('name') =~ /^[a-zA-Z.åöäÅÖÄ, -]*?$/);
@@ -293,14 +311,18 @@ eval {
 	    if (param('ilmoa')) {
 #$none means notcoming = 0, coming = 1
 		$none="1";
+		my $givenpw = "";
+		if (length(param('pw'))) {
+		    $givenpw = $pbkdf2->generate(escapeHTML(scalar param('pw')))
+		}
 		my %cookies = fetch CGI::Cookie;
 		if ($cookies{'ID'} && db::select_cookie_exists($dbh, $cookies{'ID'}->value)) {
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
 		    logging(time(), param('name')." ilmoittautui.");
 		} else {
 		    my $rand = random_string();
 		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $rand, $none);
 		    logging(time(), param('name')." ilmoittautui.");
 		}
 		$done = 1;
@@ -308,7 +330,7 @@ eval {
 		my %cookies = fetch CGI::Cookie;
 		if (param('ncpw')) {
 		    debug(time(),"ncpw db update npeditid:".param('npeditid'));
-		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef,param('ncpw'),param('npeditid'));
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef, scalar param('ncpw'), scalar param('npeditid'));
 		}
 		if ($cookies{'ID'} && param('editid')) {
 		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef, scalar(param('editid')));
@@ -317,14 +339,18 @@ eval {
 		$editdone = 1;
 	    } elsif (param('notcoming')) {
 #1= coming, 0=notcoming
+                my $givenpw = "";
+		if (length(param('pw'))) {
+		    $givenpw = $pbkdf2->generate(escapeHTML(scalar param('pw')))
+		}		
 		my %cookies = fetch CGI::Cookie;
 		if ($cookies{'ID'} && db::select_cookie_exists($dbh, $cookies{'ID'}->value)) {
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $cookies{'ID'}->value, $none);
 		} else {
 		    $none = "0";
 		    my $rand = random_string();
 		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
-		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, md5_hex(escapeHTML(scalar param('pw'))), $grill, $nick, $car, "now", $rand, $none);
+		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $rand, $none);
 		}
 		logging(time(), param('name')." ilmoitti ettei tule.");
 		$done = 1;
@@ -483,15 +509,39 @@ if ($coonames) {
     my %cookies = fetch CGI::Cookie;
 
     if ($nocookie) {
+	my @allinfo;
 	debug(time(), "nocookie if editissa");
 	debug(time(), "nocookie apwname:".param('apwname'));
 	debug(time(), "nocookie nocoopw:".$nocookiepw);
 	if (!$cookies{'ID'}) {
-	    my @cookie = db::select_cookie($dbh, escapeHTML(scalar param('apwname')),$nocookiepw);
-	    debug(time(), "nocookie cookie:".$cookie[0]->[0]);
-	    @info = db::select_for_pw($dbh, $nocookiepw, $cookie[0]->[0]);
+	    my $cookietime;
+	    my @cookieandpw = db::select_cookie($dbh, escapeHTML(param('apwname')));
+	    for (my $n=0; $n < @cookieandpw; $n++) {
+		if ($cookieandpw[$n]->[1] && $pbkdf2->validate($cookieandpw[$n]->[1], $nocookiepw)) {
+		    $cookietime = $cookieandpw[$n]->[0];
+		} else {
+		    die "pwcheck";
+		}
+	    }
+#	    my @cookie = db::select_cookie($dbh, escapeHTML(scalar param('apwname')),$nocookiepw);
+	    debug(time(), "nocookie cookie:".$cookietime);
+	    @allinfo = db::select_for_pw($dbh, $cookietime);
+	    debug(time(), "allinfo array:".@allinfo);
+	    for (my $n=0; $n < @allinfo; $n++) {
+		if ($allinfo[$n]->[5] && $pbkdf2->validate($allinfo[$n]->[5], $nocookiepw)) {
+		    @info = @{$allinfo[$n]}
+		} 
+	    }
 	} else {
-	    @info = db::select_for_pw($dbh, $nocookiepw, $cookies{'ID'}->value);
+	    @allinfo = db::select_for_pw($dbh, $cookies{'ID'}->value);
+	    debug(time(), "allinfo array2: $allinfo[0]->[0], $allinfo[1]->[0], $allinfo[2]->[0], $allinfo[3]->[0], $allinfo[4]->[0], $allinfo[5]->[0], $allinfo[6]->[0]");
+            for (my $n=0; $n < @allinfo; $n++) {
+		debug(time(), "forloop");
+		if ($allinfo[$n]->[5] && $pbkdf2->validate($allinfo[$n]->[5], $nocookiepw)) {
+		    @info = ($allinfo[$n]);
+		    debug(time(), "infoo: @info");
+		} 
+	    }
 	}
 
 	@allpw = db::select_all_allerg($dbh,$info[0]->[6]);

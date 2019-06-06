@@ -345,15 +345,26 @@ sub count_grill_percent {
 		       $grill);
 }
 
-sub select_cookie {
+
+sub select_pw_for_name {
     my $dbh = shift;
     my $name = shift;
-    my $pw = shift;
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT cookie FROM participants WHERE name = ? and passwd = ?",
-		       $name,$pw);
+		       "SELECT passwd FROM participants WHERE name = ?",
+		       $name);
+}
+
+
+sub select_cookie {
+    my $dbh = shift;
+    my $name = shift;
+    return 
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT cookie, passwd FROM participants WHERE name = ?",
+		       $name);
 }
 
 sub select_cookie_exists {
@@ -389,13 +400,12 @@ sub select_all_part {
 
 sub select_for_pw {
     my $dbh = shift;
-    my $pw = shift;
     my $cookie = shift;
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted, notcoming, car FROM participants WHERE passwd = ? AND cookie = ?",
-		       $pw, $cookie);
+		       "SELECT name, email, nick, privacy, grill, passwd, id, submitted, notcoming, car FROM participants WHERE cookie = ?",
+		       $cookie);
 }
 
 sub select_for_cookie {
