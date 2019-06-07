@@ -31,6 +31,7 @@ use strict;
 use utf8::all;
 use CGI qw/:standard -utf8/;
 use DBI;
+use Crypt::PBKDF2;
 
 my $configfile = "config";
 
@@ -169,6 +170,7 @@ sub update_comers {
     my $coo = shift;
     my $pw = shift;
     my $id = shift;
+    my $pbkdf2 = shift;
     my $sth;
     my $sth2;
     my $sth3;
@@ -178,40 +180,63 @@ sub update_comers {
     if ($nick eq 'undef') {
 	$nick = '';
     }
+
+    $dbh->begin_work;
     
     if (defined($coo) && !defined($pw)) {
 	$column="cookie";
 	$pworcoo=$coo;
+	$sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, limitgroup=?, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=? AND id = ?")
+	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	$sth->execute($none, $limitgroup, $name, $email, $privacy, $grill, $nick, $car, $none, $pworcoo, $id);
     } elsif (!defined($coo) && defined($pw)) {
-	$column="passwd";
 	$pworcoo=$pw;
+	my @hashpw = select_pw_for_id($dbh, $id);
+	if ($pworcoo && $pbkdf2->validate($hashpw[0]->[0], $pworcoo)) {
+	    $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, limitgroup=?, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE id = ?")
+	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	    $sth->execute($none, $limitgroup, $name, $email, $privacy, $grill, $nick, $car, $none, $id);
+	}
     }
-
-    $dbh->begin_work;
-    $sth = $dbh->prepare("UPDATE participants SET submitted=CASE WHEN notcoming<>? THEN NOW() ELSE submitted END, limitgroup=?, name=?, email=?, privacy=?, grill=?, nick=?, car=?, notcoming=? WHERE $column=? AND id = ?")
-        or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($none, $limitgroup, $name, $email, $privacy, $grill, $nick, $car, $none, $pworcoo, $id);
     $sth->finish;
     
-    $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=? and id = ?)")
-	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth2->execute($pworcoo, $id);
+    if (defined($coo) && !defined($pw)) {
+        $column="cookie";
+        $pworcoo=$coo;
+	$sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE $column=? and id = ?)")
+	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	$sth2->execute($pworcoo, $id);
+    } elsif (!defined($coo) && defined($pw)) {
+        $pworcoo=$pw;
+        my @hashpw = select_pw_for_id($dbh, $id);
+        if ($pworcoo && $pbkdf2->validate($hashpw[0]->[0], $pworcoo)) {
+            $sth2 = $dbh->prepare("DELETE from allergies WHERE id=(SELECT id FROM participants WHERE id = ?)")
+		or die "Couldn't prepare statement: " . $dbh->errstr;
+	    $sth2->execute($id);
+        }
+    }
     $sth2->finish;
     
     if (@values) {
 	foreach my $item (@values) {
-	    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT id FROM participants WHERE $column=? AND id = ?))")
-		or die "Couldn't prepare statement: " . $dbh->errstr;
-	    $sth3->execute($item, $pworcoo, $id);
+	    if (defined($coo) && !defined($pw)) {
+		$column="cookie";
+		$pworcoo=$coo;
+		$sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT id FROM participants WHERE $column=? AND id = ?))")
+		    or die "Couldn't prepare statement: " . $dbh->errstr;
+		$sth3->execute($item, $pworcoo, $id);
+	    } elsif (!defined($coo) && defined($pw)) {
+		$pworcoo=$pw;
+		my @hashpw = select_pw_for_id($dbh, $id);
+		if ($pworcoo && $pbkdf2->validate($hashpw[0]->[0], $pworcoo)) {
+		    $sth3 = $dbh->prepare("INSERT INTO allergies (allergy, id) VALUES (?, (SELECT id FROM participants WHERE id = ?))")
+			or die "Couldn't prepare statement: " . $dbh->errstr;
+		    $sth3->execute($item, $id);
+		}	  
+	    }
 	    $sth3->finish;
 	}
     }
-
-
-
-    
-
-
     $dbh->commit;
 }
 
@@ -242,42 +267,53 @@ sub delete_user {
     my $pw = shift;
     my $coo = shift;
     my $id = shift;
+    my $pbkdf2 = shift;
     my $column = "";
     my $pworcoo;
 
     my $sth;
     my $sth2;
+
+    $dbh->begin_work;
     
     if (defined($coo) && !defined($pw)) {
 	$column="cookie";
 	$pworcoo=$coo;
+	$sth2 = $dbh->prepare("DELETE from allergies WHERE id = (SELECT id FROM participants WHERE $column = ? AND id = ?)")
+	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	$sth2->execute($pworcoo, $id);
     } elsif (!defined($coo) && defined($pw)) {
-	$column="passwd";
 	$pworcoo=$pw;
+	my @hashpw = select_pw_for_id($dbh, $id);
+        if ($pworcoo && $pbkdf2->validate($hashpw[0]->[0], $pworcoo)) {
+	    $sth2 = $dbh->prepare("DELETE from allergies WHERE id = (SELECT id FROM participants WHERE id = ?)")
+		or die "Couldn't prepare statement: " . $dbh->errstr;
+	    $sth2->execute($id);
+	}
     }
-
-    $dbh->begin_work;
-    $sth2 = $dbh->prepare("DELETE from allergies WHERE id = (SELECT id FROM participants WHERE $column = ? AND id = ?)")
-	or die "Couldn't prepare statement: " . $dbh->errstr;
-
-    debug("sql1:".$sth2);
-    debug($sth2->{Statement});
-    debug($dbh->{Statement});
-
-    $sth2->execute($pworcoo, $id);
     $sth2->finish;
 
-    debug($sth2->{Statement});
-    debug($dbh->{Statement});    
-	
-    $sth = $dbh->prepare("DELETE from participants WHERE $column = ? AND id = ?")
- 	or die "Couldn't prepare statement: " . $dbh->errstr;
-    $sth->execute($pworcoo, $id);
-    my $scalar = '';
-    open( my $fh, "+>:scalar", \$scalar );
-    $dbh->trace( 2, $fh );
+    if (defined($coo) && !defined($pw)) {
+        $column="cookie";
+        $pworcoo=$coo;
+	$sth = $dbh->prepare("DELETE from participants WHERE $column = ? AND id = ?")
+	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	$sth->execute($pworcoo, $id);
+    } elsif (!defined($coo) && defined($pw)) {
+        $pworcoo=$pw;
+        my @hashpw = select_pw_for_id($dbh, $id);
+        if ($pworcoo && $pbkdf2->validate($hashpw[0]->[0], $pworcoo)) {
+	    $sth = $dbh->prepare("DELETE from participants WHERE id = ?")
+		or die "Couldn't prepare statement: " . $dbh->errstr;
+	    $sth->execute($id);
+	}
+    }
+    
+#	my $scalar = '';'
+#	open( my $fh, "+>:scalar", \$scalar );
+#	$dbh->trace( 2, $fh );
 
-    debug($scalar);
+#    debug($scalar);
     debug($sth->{Statement});
     debug($dbh->{Statement});
     $sth->finish;
@@ -346,16 +382,15 @@ sub count_grill_percent {
 }
 
 
-sub select_pw_for_name {
+sub select_pw_for_id {
     my $dbh = shift;
-    my $name = shift;
+    my $id = shift;
     return 
 	select_generic($dbh,
 		       sub{return [@_]},
-		       "SELECT passwd FROM participants WHERE name = ?",
-		       $name);
+		       "SELECT passwd FROM participants WHERE id = ?",
+		       $id);
 }
-
 
 sub select_cookie {
     my $dbh = shift;

@@ -20,7 +20,7 @@ grill = 1
 praller = 1
 
 #List of allergies printed to form (format has to be followed):
-allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luontaisesti gluteeniton,Maidoton,Mauton,Pähkinätön,Rasvaton,Soijalesitiinitön,Soijaton,Suolaton,Vähälaktoosinen
+allergies = Alkoholiton,Gluteeniton,Kananmunaton,Laktoositon,Lihaani,Luomu,Luontaisesti gluteeniton,Maidoton,Mauton,PÃ¤hkinÃ¤tÃ¶n,Rasvaton,SoijalesitiinitÃ¶n,Soijaton,Suolaton,VÃ¤hÃ¤laktoosinen
 
 #Cookie expiration
 expire = Saturday, 03-Aug-2013 00:00:00 GMT

@@ -163,11 +163,11 @@ eval {
 	    my %cookies = fetch CGI::Cookie;
 	    if (param('ncpw')) {
 		debug(time(), "pw poisto");
-		db::delete_user($dbh,param('ncpw'),undef,scalar param('npeditid'));
+		db::delete_user($dbh,scalar param('ncpw'),undef,scalar param('npeditid'), $pbkdf2);
 	    }
 	    if ($cookies{'ID'} && param('editid')) {
 		debug(time(), "cookie poisto");
-		db::delete_user($dbh,undef,$cookies{'ID'}->value,param('editid'));
+		db::delete_user($dbh,undef,$cookies{'ID'}->value,param('editid'), $pbkdf2);
 	    }
 	    $editpw=0;
 	    $editdone = 1;
@@ -330,10 +330,10 @@ eval {
 		my %cookies = fetch CGI::Cookie;
 		if (param('ncpw')) {
 		    debug(time(),"ncpw db update npeditid:".param('npeditid'));
-		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car,  $none, undef, scalar param('ncpw'), scalar param('npeditid'));
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, undef, scalar param('ncpw'), scalar param('npeditid'), $pbkdf2);
 		}
 		if ($cookies{'ID'} && param('editid')) {
-		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef, scalar(param('editid')));
+		    db::update_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $grill, $nick, $car, $none, $cookies{'ID'}->value, undef, scalar(param('editid')), $pbkdf2);
 		}
 		logging(time(), param('name')." muokkasi ilmoittautumistaan.");
 		$editdone = 1;
@@ -515,7 +515,7 @@ if ($coonames) {
 	debug(time(), "nocookie nocoopw:".$nocookiepw);
 	if (!$cookies{'ID'}) {
 	    my $cookietime;
-	    my @cookieandpw = db::select_cookie($dbh, escapeHTML(param('apwname')));
+	    my @cookieandpw = db::select_cookie($dbh, escapeHTML(scalar param('apwname')));
 	    for (my $n=0; $n < @cookieandpw; $n++) {
 		if ($cookieandpw[$n]->[1] && $pbkdf2->validate($cookieandpw[$n]->[1], $nocookiepw)) {
 		    $cookietime = $cookieandpw[$n]->[0];
@@ -529,7 +529,7 @@ if ($coonames) {
 	    debug(time(), "allinfo array:".@allinfo);
 	    for (my $n=0; $n < @allinfo; $n++) {
 		if ($allinfo[$n]->[5] && $pbkdf2->validate($allinfo[$n]->[5], $nocookiepw)) {
-		    @info = @{$allinfo[$n]}
+		    @info = ($allinfo[$n]);
 		} 
 	    }
 	} else {
