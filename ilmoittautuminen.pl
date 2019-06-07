@@ -34,6 +34,7 @@ use utf8::all;
 use CGI qw/:standard -debug -utf8/;
 use CGI::Cookie;
 use Crypt::PBKDF2;
+use Bytes::Random::Secure;
 use lib ".";
 use ilmotexts;
 use db;
@@ -90,9 +91,7 @@ my $pbkdf2 = Crypt::PBKDF2->new(
 sub random_string() { 
     my $str = ""; 
     my $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz"; 
-    for (my $c = 0; $c < 10; ++$c) { 
-	$str .= substr($chars, rand(length($chars)), 1); 
-    } 
+    $str = Bytes::Random::Secure::random_string_from($chars, 10);
     return $str; 
 }
 
@@ -534,7 +533,6 @@ if ($coonames) {
 	    }
 	} else {
 	    @allinfo = db::select_for_pw($dbh, $cookies{'ID'}->value);
-	    debug(time(), "allinfo array2: $allinfo[0]->[0], $allinfo[1]->[0], $allinfo[2]->[0], $allinfo[3]->[0], $allinfo[4]->[0], $allinfo[5]->[0], $allinfo[6]->[0]");
             for (my $n=0; $n < @allinfo; $n++) {
 		debug(time(), "forloop");
 		if ($allinfo[$n]->[5] && $pbkdf2->validate($allinfo[$n]->[5], $nocookiepw)) {
