@@ -37,12 +37,23 @@ use db;
 
 my $dbh=db::connect_db();
 
+sub matrixsend {
+    my $message = shift;
+
+    open(F, "| /home/manti/bin/matrix-send.py --config /home/manti/.config/matrix-send/config.ini 2> /home/manti/public_html/ilmo/matrixack.log");
+    print F "$message acked";
+    close(F);
+}
+
 print header("text/html;charset=UTF-8");
-print itext::otsikko();
+print itext::ackotsikko();
 
 if (defined(param('seed'))) {
     db::ack_email($dbh,param('seed'));
     print itext::ack();
+
+    my @ackperson = db::select_who_ack($dbh,param('seed'));
+    matrixsend($ackperson[0]->[0]);
 }
 
 print itext::endtags();

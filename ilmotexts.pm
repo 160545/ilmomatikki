@@ -98,6 +98,8 @@ sub coalesce {
 
 sub otsikko { return "<!DOCTYPE html>\n<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
+sub ackotsikko { return "<!DOCTYPE html>\n<html><head><link rel=\"stylesheet\" href=\"../style.css\"><title>$title</title></head><body>";}
+
 sub headeri { return "<h1>$header</h1>";}
 
 sub tulossa { return "<h1>$tulossa</h1>";}

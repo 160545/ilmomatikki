@@ -213,10 +213,10 @@ my @noack=db::select_no_ack($dbh);
 #print "<table border=1>\n";
 print "<table>\n";
 print "<th></th>";
-print "<form name=\"adminack\" method=\"post\">";
+print "<form name=\"adminack\" method=\"post\" enctype=\"multipart/form-data\">";
 
 for (my $a=0; $a < @noack; $a++) { 
-    my $name2 = Encode::decode_utf8($noack[$a]->[0]);
+    my $name2 = $noack[$a]->[0];
     my $name = escapeHTML($name2);
     print "<tr><td><input type=\"checkbox\" id=\"$noack[$a]->[1]\" name=\"$noack[$a]->[1]\"></td>";
     print "<td>$name</td><td></tr>\n";
@@ -232,14 +232,14 @@ print "<table border=1>\n";
 print "<th></th>";
 
 for (my $n=0; $n < @itext::headers; $n++) { 
-    print "<form name=\"adminsort\" method=\"get\">";
+    print "<form name=\"adminsort\" method=\"get\" enctype=\"multipart/form-data\">";
     print "<th><input type=\"hidden\" id=\"sort\" name=\"sort\" value=\"$itext::headers[$n]\">$itext::headers[$n] ";
     print "<input type=\"submit\" name=\"up\" value=\"&uarr;\">";
     print "<input type=\"submit\" name=\"down\" value=\"&darr;\"></th>\n";
     print "</form>";
 }
 
-print "<form name=\"adminilmo\"method=\"post\">";
+print "<form name=\"adminilmo\"method=\"post\" enctype=\"multipart/form-data\">";
 for (my $n=0; $n < @comers; $n++) { 
     if ($comers[$n]->[7]) {
 	print "<tr><td><input type=\"checkbox\" id=\"$n\" name=\"$n\"></td><td>$comers[$n]->[0]</td><td>$comers[$n]->[1]</td><td>$comers[$n]->[2]</td><td>";
@@ -293,11 +293,11 @@ my @cars = db::select_car_count($dbh);
 print "<br> Autoja tulossa noin $cars[0]->[0].";
 
 print "<h1>Epätulijat</h1>";
-print "<form name=\"adminilmo\"method=\"post\"><table border=1>\n";
+print "<form name=\"adminilmo\"method=\"post\" enctype=\"multipart/form-data\"><table border=1>\n";
 print "<th></th>";
 
 for (my $n=0; $n < @itext::headers; $n++) { 
-    print "<form name=\"adminsort\" method=\"get\">";
+    print "<form name=\"adminsort\" method=\"get\" enctype=\"multipart/form-data\">";
     print "<th><input type=\"hidden\" id=\"sort\" name=\"sort\" value=\"$itext::headers[$n]\">$itext::headers[$n] ";
     print "<input type=\"submit\" name=\"up\" value=\"&uarr;\">";
     print "<input type=\"submit\" name=\"down\" value=\"&darr;\"></th>\n";
@@ -354,7 +354,7 @@ $udallergy = "";
 my @count2 = db::select_count($dbh, "0");
 print itext::nocomeamount(\@count2);
 
-print "<form name=\"adminexport\"method=\"post\">";
+print "<form name=\"adminexport\"method=\"post\" enctype=\"multipart/form-data\">";
 print "<br><input type=\"submit\" name=\"export\" value=\"Exportoi tiedot CSV:ksi\"></form>\n";
 print "<a href=\"ilmoallergycount.pl\">Allergiayhteenveto</a><br>";
 

@@ -117,6 +117,17 @@ sub select_no_ack {
 		       "SELECT email, seed FROM ack WHERE acktime is null and adminacktime is null ");
 }
 
+sub select_who_ack {
+    my $dbh = shift;
+    my $id = shift;
+
+    return
+	select_generic($dbh,
+		       sub{return [@_]},
+		       "SELECT email FROM ack WHERE seed=?",
+		       $id);
+}
+
 sub insert_comers {
     my $dbh = shift;
     my $limitgroup = shift;
