@@ -95,6 +95,15 @@ sub random_string() {
     return $str; 
 }
 
+sub matrixsend {
+    my $message = shift;
+
+    open(F, "| /home/manti/bin/matrix-send.py --config /home/manti/.config/matrix-send/config.ini 2> /home/manti/public_html/ilmo/matrix.log");
+    print F "$message";
+    close(F);
+}
+
+
 #read allergies and all other stuff from config file:
 if (open(F, "<", $configfile)) {
     my @temparr;
@@ -142,6 +151,7 @@ sub logging {
     open(F, ">>", $log);
     print F "$time $msg\n";
     close(F);
+    matrixsend($msg);
 }
 
 sub debug {
