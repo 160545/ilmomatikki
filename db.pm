@@ -38,6 +38,7 @@ my $configfile = "config";
 my $debuglog;
 my $host;
 my $user;
+my $dbpw;
 my $db;
 
 my $printdebug=0;
@@ -54,6 +55,9 @@ if (open(F, "<", $configfile)) {
 	} elsif ($line =~ /^dbuser/) {
 	    @temparr = split(/\= */,$line);
 	    $user = $temparr[1];
+	} elsif ($line =~ /^dbpass/) {
+	    @temparr = split(/\= */,$line);
+	    $dbpw = $temparr[1];
 	} elsif ($line =~ /^database/) {
 	    @temparr = split(/\= */,$line);
 	    $db = $temparr[1];
@@ -77,7 +81,7 @@ sub debug {
 
 #global database handler, slow to create & disconnect all the time, done only once
 sub connect_db {
-    return (DBI->connect('DBI:Pg:host='.$host.';dbname='.$db,$user) or die "Couldn't connect to database: " . DBI->errstr);
+    return (DBI->connect('DBI:Pg:host='.$host.';dbname='.$db,$user,$dbpw) or die "Couldn't connect to database: " . DBI->errstr);
 }
 
 sub ack_email {

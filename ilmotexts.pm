@@ -54,7 +54,8 @@ my $tulossa = "Tähän mennessä ilmoittautuneet:";
 my $nottulossa = "Tähän mennessä eivät ole tulossa:";
 my $done = "Ilmoittautuminen suoritettu.";
 my $edone = "Ilmoittautumista muokattu.";
-my $ack = "Email tuli siis perille. Kiitos kun kerroit!<br><br>Muistathan myös ilmoittautua!";
+my $acktxt1 = "Email tuli siis perille. Kiitos kun kerroit!<br><br>Muistathan myös";
+my $acktxt2 = "ilmoittautua!";
 my $avecalso1 = "Ilmoita myös";
 my $avecalso2 = "avec!";
 my $wasnotcoming = "Aiemmin ilmoitit ettet ole tulossa...";
@@ -98,7 +99,7 @@ sub coalesce {
 
 sub otsikko { return "<!DOCTYPE html>\n<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
-sub ackotsikko { return "<!DOCTYPE html>\n<html><head><link rel=\"stylesheet\" href=\"../style.css\"><title>$title</title></head><body>";}
+sub ackotsikko { return "<!DOCTYPE html>\n<html><head><link rel=\"stylesheet\" href=\"ilmo.css\"><title>$title</title></head><body>";}
 
 sub headeri { return "<h1>$header</h1>";}
 
@@ -112,7 +113,7 @@ sub done { return $done;}
 
 sub edone { return $edone;}
 
-sub ack { return $ack;}
+sub ack { return "$acktxt1 <a href=\"..\"> $acktxt2</a>";}
 
 sub grillp {
     my @hot = @{shift()};
@@ -284,9 +285,9 @@ sub ilmosivu { return "<br><br><br><a href=\"" . url(-relative=>1) . "?tulijat=1
 
 sub muokkaa { return "<br><a href=\"".url(-relative=>1)."?mpw=1\">$muokkaa</a>";}
 
-sub takaisin { return "<br><a href=\"".url(-absolute=>1)."\">$takaisin</a><br>";}
+sub takaisin { return "<br><a href=\".\">$takaisin</a><br>";}
 
-sub avecalso { return "<br>$avecalso1 <a href=\"".url(-absolute=>1)."\">$avecalso2</a><br>";}
+sub avecalso { return "<br>$avecalso1 <a href=\".\">$avecalso2</a><br>";}
 
 sub charerror { return $charerror;}
 

@@ -98,7 +98,7 @@ sub random_string() {
 sub matrixsend {
     my $message = shift;
 
-    open(F, "| /home/manti/bin/matrix-send.py --config /home/manti/.config/matrix-send/config.ini 2> /home/manti/public_html/ilmo/matrix.log");
+    open(F, "| /usr/bin/matrix-send.py --config /var/www/matrix-part/config.ini 2> /var/www/ilmomatikki/matrix.log");
     print F "$message";
     close(F);
 }
@@ -210,15 +210,20 @@ eval {
 	    }
 	} elsif (param('subpw') && param('apw') && param('apwname')) {
 	    my $rand;
+	    my $isvalidated = 0;
 	    my @cookieandpw = db::select_cookie($dbh, escapeHTML(scalar param('apwname')));
 	    for (my $n=0; $n < @cookieandpw; $n++) {
-		if ($pbkdf2->validate($cookieandpw[$n]->[1], escapeHTML(scalar param('apw')))) {
-		    $rand = $cookieandpw[$n]->[0];
-		} else {
-		    die "pwcheck";
+		if ($cookieandpw[$n]->[1]) {
+		    if ($pbkdf2->validate($cookieandpw[$n]->[1], escapeHTML(scalar param('apw')))) {
+			$rand = $cookieandpw[$n]->[0];
+			$isvalidated = 1;
+		    }
 		}
 	    }
-	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');
+	    if (! $isvalidated) {
+                die "pwcheck";
+            }
+	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>url(-absolute=>1));
 	    
 #	    if (!$rand[0]->[0]) {
 #		die "pwcheck";
@@ -330,7 +335,7 @@ eval {
 		    logging(time(), param('name')." ilmoittautui.");
 		} else {
 		    my $rand = random_string();
-		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
+		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>url(-absolute=>1));
 		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $rand, $none);
 		    logging(time(), param('name')." ilmoittautui.");
 		}
@@ -358,7 +363,7 @@ eval {
 		} else {
 		    $none = "0";
 		    my $rand = random_string();
-		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>'url(-absolute=>1)');    
+		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>url(-absolute=>1));
 		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $rand, $none);
 		}
 		logging(time(), param('name')." ilmoitti ettei tule.");
@@ -524,14 +529,19 @@ if ($coonames) {
 	debug(time(), "nocookie nocoopw:".$nocookiepw);
 	if (!$cookies{'ID'}) {
 	    my $cookietime;
+	    my $isvalidated = 0;
 	    my @cookieandpw = db::select_cookie($dbh, escapeHTML(scalar param('apwname')));
 	    for (my $n=0; $n < @cookieandpw; $n++) {
-		if ($cookieandpw[$n]->[1] && $pbkdf2->validate($cookieandpw[$n]->[1], $nocookiepw)) {
-		    $cookietime = $cookieandpw[$n]->[0];
-		} else {
-		    die "pwcheck";
+		if ($cookieandpw[$n]->[1]) {
+		    if ($pbkdf2->validate($cookieandpw[$n]->[1], $nocookiepw)) {
+			$cookietime = $cookieandpw[$n]->[0];
+			$isvalidated = 1;
+		    }
 		}
 	    }
+	    if (! $isvalidated) {
+		die "pwcheck";
+            }
 #	    my @cookie = db::select_cookie($dbh, escapeHTML(scalar param('apwname')),$nocookiepw);
 	    debug(time(), "nocookie cookie:".$cookietime);
 	    @allinfo = db::select_for_pw($dbh, $cookietime);

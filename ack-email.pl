@@ -40,7 +40,7 @@ my $dbh=db::connect_db();
 sub matrixsend {
     my $message = shift;
 
-    open(F, "| /home/manti/bin/matrix-send.py --config /home/manti/.config/matrix-send/config.ini 2> /home/manti/public_html/ilmo/matrixack.log");
+    open(F, "| /usr/bin/matrix-send.py --config /var/www/matrix-part/config.ini 2> /var/www/ilmomatikki/matrixack.log");
     print F "$message acked";
     close(F);
 }
