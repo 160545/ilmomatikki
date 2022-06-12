@@ -223,7 +223,7 @@ eval {
 	    if (! $isvalidated) {
                 die "pwcheck";
             }
-	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>url(-absolute=>1));
+	    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);
 	    
 #	    if (!$rand[0]->[0]) {
 #		die "pwcheck";
@@ -335,7 +335,7 @@ eval {
 		    logging(time(), param('name')." ilmoittautui.");
 		} else {
 		    my $rand = random_string();
-		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>url(-absolute=>1));
+		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);
 		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $rand, $none);
 		    logging(time(), param('name')." ilmoittautui.");
 		}
@@ -363,7 +363,7 @@ eval {
 		} else {
 		    $none = "0";
 		    my $rand = random_string();
-		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire,-path=>url(-absolute=>1));
+		    $cookie = new CGI::Cookie(-name=>'ID',-value=>$rand,-expires=>$cookieexpire);
 		    db::insert_comers($dbh, $ilmolimitgroup, escapeHTML(scalar param('name')), escapeHTML(scalar param('email')), \@allergyvalues, $privacy, $givenpw, $grill, $nick, $car, "now", $rand, $none);
 		}
 		logging(time(), param('name')." ilmoitti ettei tule.");
